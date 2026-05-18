@@ -1,0 +1,23 @@
+{
+  "name": "@lore/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@lore/db": "workspace:*",
+    "@lore/validators": "workspace:*",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241230.0",
+    "@lore/config": "workspace:*",
+    "eslint": "^9.0.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.90.0"
+  }
+}
