@@ -1,6 +1,10 @@
 {
   "name": "lore",
   "private": true,
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
