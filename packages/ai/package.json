@@ -1,0 +1,22 @@
+{
+  "name": "@lore/ai",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@lore/config": "workspace:*",
+    "eslint": "^9.0.0",
+    "typescript": "^5.6.0"
+  }
+}
