@@ -9,9 +9,13 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "format": "biome format --write .",
+    "format:check": "biome format --check ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "lefthook": "^2.1.6",
     "turbo": "^2.5.0"
   },
   "packageManager": "pnpm@9.15.0"

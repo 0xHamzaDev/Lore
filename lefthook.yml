@@ -1,0 +1,21 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format-check
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json}"
+      run: pnpm exec biome format {staged_files}
+
+    - name: lint
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm exec eslint --max-warnings 0 {staged_files}
+
+    - name: typecheck
+      run: pnpm typecheck
+
+pre-push:
+  jobs:
+    - name: typecheck
+      run: pnpm typecheck
+
+    - name: lint-all
+      run: pnpm lint
