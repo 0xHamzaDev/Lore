@@ -11,4 +11,5 @@ export const env = createEnv({
     DATABASE_URL: process.env["DATABASE_URL"],
     ANTHROPIC_API_KEY: process.env["ANTHROPIC_API_KEY"],
   },
+  skipValidation: !!process.env["SKIP_ENV_VALIDATION"],
 });

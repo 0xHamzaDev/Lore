@@ -6,8 +6,9 @@ pre-commit:
       run: pnpm exec biome format {staged_files}
 
     - name: lint
-      glob: "*.{ts,tsx,js,jsx}"
-      run: pnpm exec eslint --max-warnings 0 {staged_files}
+      env:
+        SKIP_ENV_VALIDATION: "1"
+      run: pnpm lint
 
     - name: typecheck
       run: pnpm typecheck
@@ -18,4 +19,6 @@ pre-push:
       run: pnpm typecheck
 
     - name: lint-all
+      env:
+        SKIP_ENV_VALIDATION: "1"
       run: pnpm lint
