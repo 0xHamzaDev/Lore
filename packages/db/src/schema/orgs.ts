@@ -8,6 +8,7 @@ export const organizations = pgTable("organization", {
   slug: text("slug").unique(),
   logo: text("logo"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
   metadata: text("metadata"),
 });
 
@@ -21,6 +22,7 @@ export const members = pgTable("member", {
     .references(() => users.id, { onDelete: "cascade" }),
   role: text("role", { enum: ["owner", "editor", "viewer"] }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const invitations = pgTable("invitation", {
@@ -37,7 +39,8 @@ export const invitations = pgTable("invitation", {
   inviterId: text("inviter_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const userProfiles = pgTable("user_profiles", {
@@ -57,4 +60,5 @@ export const userProfiles = pgTable("user_profiles", {
 
 export type Organization = typeof organizations.$inferSelect;
 export type Member = typeof members.$inferSelect;
+export type UserProfile = typeof userProfiles.$inferSelect;
 export type OrgRole = "owner" | "editor" | "viewer";
