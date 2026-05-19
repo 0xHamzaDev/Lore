@@ -1,0 +1,70 @@
+{
+  "Auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "signOut": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم",
+    "emailPlaceholder": "example@email.com",
+    "passwordPlaceholder": "••••••••",
+    "namePlaceholder": "اسمك الكامل",
+    "signingIn": "جاري تسجيل الدخول...",
+    "signingUp": "جاري إنشاء الحساب...",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "emailTaken": "هذا البريد الإلكتروني مستخدم بالفعل",
+      "generic": "حدث خطأ، يرجى المحاولة مجدداً"
+    }
+  },
+  "Dashboard": {
+    "title": "المشاريع",
+    "description": "إدارة مشاريعك وقصصك",
+    "emptyTitle": "لا توجد مشاريع بعد",
+    "emptyDescription": "ابدأ أول قصة لك الآن",
+    "newProject": "مشروع جديد"
+  },
+  "Settings": {
+    "org": {
+      "title": "إعدادات المنظمة",
+      "members": "الأعضاء",
+      "invite": "دعوة عضو",
+      "inviteEmail": "البريد الإلكتروني",
+      "inviteRole": "الدور",
+      "inviting": "جاري الدعوة...",
+      "sendInvite": "إرسال دعوة",
+      "roles": {
+        "owner": "مالك",
+        "editor": "محرر",
+        "viewer": "مشاهد"
+      },
+      "removeConfirm": "هل أنت متأكد من إزالة هذا العضو؟",
+      "removeMember": "إزالة",
+      "changeRole": "تغيير الدور",
+      "inviteSent": "تم إرسال الدعوة بنجاح",
+      "memberRemoved": "تم إزالة العضو",
+      "roleUpdated": "تم تحديث الدور"
+    }
+  },
+  "Nav": {
+    "dashboard": "المشاريع",
+    "settings": "الإعدادات",
+    "org": "المنظمة"
+  },
+  "Common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "retry": "حاول مجدداً",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "confirm": "تأكيد"
+  },
+  "Marketing": {
+    "title": "لور",
+    "tagline": "منصة الكتابة الإبداعية المدعومة بالذكاء الاصطناعي",
+    "cta": "ابدأ الآن"
+  }
+}

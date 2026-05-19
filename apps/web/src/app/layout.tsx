@@ -3,15 +3,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Lore",
-  description: "AI-driven storytelling",
+  description: "AI-powered storytelling platform",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }

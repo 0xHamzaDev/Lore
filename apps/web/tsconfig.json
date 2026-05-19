@@ -1,9 +1,17 @@
 {
   "extends": "@lore/config/tsconfig.base.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "esModuleInterop": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

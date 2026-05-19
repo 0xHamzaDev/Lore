@@ -1,0 +1,70 @@
+{
+  "Auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "emailPlaceholder": "example@email.com",
+    "passwordPlaceholder": "••••••••",
+    "namePlaceholder": "Your full name",
+    "signingIn": "Signing in...",
+    "signingUp": "Creating account...",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailTaken": "This email is already in use",
+      "generic": "Something went wrong, please try again"
+    }
+  },
+  "Dashboard": {
+    "title": "Projects",
+    "description": "Manage your projects and stories",
+    "emptyTitle": "No projects yet",
+    "emptyDescription": "Start your first story now",
+    "newProject": "New project"
+  },
+  "Settings": {
+    "org": {
+      "title": "Organization settings",
+      "members": "Members",
+      "invite": "Invite member",
+      "inviteEmail": "Email address",
+      "inviteRole": "Role",
+      "inviting": "Sending invite...",
+      "sendInvite": "Send invite",
+      "roles": {
+        "owner": "Owner",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      },
+      "removeConfirm": "Are you sure you want to remove this member?",
+      "removeMember": "Remove",
+      "changeRole": "Change role",
+      "inviteSent": "Invitation sent successfully",
+      "memberRemoved": "Member removed",
+      "roleUpdated": "Role updated"
+    }
+  },
+  "Nav": {
+    "dashboard": "Projects",
+    "settings": "Settings",
+    "org": "Organization"
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm"
+  },
+  "Marketing": {
+    "title": "Lore",
+    "tagline": "AI-powered creative writing platform",
+    "cta": "Get started"
+  }
+}

@@ -51,7 +51,7 @@
 | Framework | Next.js 15 (App Router) |
 | Monorepo | Turborepo + pnpm workspaces |
 | Language | TypeScript 5 |
-| Database | PostgreSQL via Supabase |
+| Database | PostgreSQL via Neon (serverless) |
 | ORM | Drizzle ORM + drizzle-kit |
 | Auth | Better-Auth |
 | UI primitives | Shadcn/ui + Radix UI |
