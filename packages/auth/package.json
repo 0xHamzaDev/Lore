@@ -1,0 +1,26 @@
+{
+  "name": "@lore/auth",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./guard": "./src/guard.ts",
+    "./permissions": "./src/permissions.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@lore/db": "workspace:*",
+    "@lore/utils": "workspace:*",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "better-auth": "^1.2.0",
+    "resend": "^4.0.0"
+  },
+  "devDependencies": {
+    "@lore/config": "workspace:*",
+    "next": "^15.1.0",
+    "typescript": "^5.6.0"
+  }
+}
