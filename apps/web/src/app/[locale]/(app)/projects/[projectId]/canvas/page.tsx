@@ -1,9 +1,8 @@
-import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { eq, and, isNull } from "@lore/db";
 import { requireAuth } from "@lore/auth/guard";
-import { db, projects, members } from "@lore/db";
-import { Skeleton } from "@lore/ui";
+import { db, projects, members, branches, eq, and, isNull } from "@lore/db";
+import { notFound } from "next/navigation";
+import { CanvasProvider } from "./_components/canvas-provider";
+import { CanvasApp } from "./_components/canvas-app";
 
 interface CanvasPageProps {
   params: Promise<{ projectId: string; locale: string }>;
@@ -12,7 +11,6 @@ interface CanvasPageProps {
 export default async function CanvasPage({ params }: CanvasPageProps) {
   const { projectId } = await params;
   const session = await requireAuth();
-  const t = await getTranslations("Projects");
 
   const project = await db
     .select({ id: projects.id, orgId: projects.orgId, name: projects.name })
@@ -30,10 +28,28 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
 
   if (!membership[0]) notFound();
 
+  const branchRows = await db
+    .select({ id: branches.id, name: branches.name })
+    .from(branches)
+    .where(and(eq(branches.projectId, project[0].id), eq(branches.orgId, project[0].orgId)))
+    .limit(1);
+
+  if (!branchRows[0]) notFound();
+
+  const branch = branchRows[0];
+
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 bg-[#fafaf9]">
-      <Skeleton className="h-[60vh] w-[80vw] rounded-sm" />
-      <p className="text-sm text-[#93939f]">{t("canvasSkeleton")}</p>
+    <div className="flex h-full w-full flex-col">
+      <h1 className="sr-only">{project[0].name}</h1>
+      <CanvasProvider roomId={`${project[0].id}:${branch.id}`}>
+        <CanvasApp
+          projectId={project[0].id}
+          branchId={branch.id}
+          orgId={project[0].orgId}
+          userId={session.user.id}
+          userName={session.user.name ?? "Anonymous"}
+        />
+      </CanvasProvider>
     </div>
   );
 }

@@ -22,6 +22,13 @@
       "when": 1779470247171,
       "tag": "0002_fearless_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779478932367,
+      "tag": "0003_absurd_shriek",
+      "breakpoints": true
     }
   ]
 }

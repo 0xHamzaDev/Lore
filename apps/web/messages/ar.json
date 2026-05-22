@@ -82,5 +82,39 @@
     "title": "الترقية إلى Pro",
     "description": "الخطة المجانية تقتصر على مشروع واحد. قم بالترقية لإنشاء مشاريع غير محدودة.",
     "cta": "ترقية الخطة"
+  },
+  "Canvas": {
+    "entityTypes": {
+      "character": "شخصية",
+      "location": "موقع",
+      "faction": "فصيل",
+      "scene": "مشهد",
+      "timelineEvent": "حدث"
+    },
+    "addEntity": "إضافة عنصر",
+    "deleteEntity": "حذف العنصر",
+    "deleteConfirm": "هل أنت متأكد من الحذف؟ لا يمكن التراجع.",
+    "saving": "جاري الحفظ...",
+    "saved": "تم الحفظ"
+  },
+  "Entity": {
+    "name": "الاسم",
+    "bio": "السيرة الذاتية",
+    "age": "العمر",
+    "role": "الدور",
+    "backstory": "الخلفية",
+    "voiceSample": "نموذج صوتي",
+    "description": "الوصف",
+    "climate": "المناخ",
+    "culture": "الثقافة",
+    "history": "التاريخ",
+    "ideology": "الأيديولوجية",
+    "goals": "الأهداف",
+    "summary": "الملخص",
+    "beat": "الفصل",
+    "order": "الترتيب",
+    "date": "التاريخ",
+    "significance": "الأهمية",
+    "title": "العنوان"
   }
 }

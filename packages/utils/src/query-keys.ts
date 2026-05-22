@@ -8,4 +8,8 @@ export const QK = {
     list: (orgId: string) => ["projects", orgId] as const,
     detail: (projectId: string) => ["projects", projectId] as const,
   },
+  entities: {
+    list: (branchId: string, type: string) => ["entities", branchId, type] as const,
+    detail: (entityId: string) => ["entities", entityId] as const,
+  },
 } as const;
