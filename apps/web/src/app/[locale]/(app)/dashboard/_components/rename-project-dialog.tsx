@@ -48,6 +48,7 @@ export function RenameProjectDialog({
   });
 
   // Reset form when a different project is targeted
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     form.reset({ name: project.name });
   }, [project.id, form]);
