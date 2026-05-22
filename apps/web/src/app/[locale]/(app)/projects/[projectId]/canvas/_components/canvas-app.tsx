@@ -16,7 +16,7 @@ import { createEntity, listEntities } from "../_actions";
 import { ENTITY_SHAPE_TYPE, EntityShapeUtil } from "./entity-shape-util";
 import type { EntityShape } from "./entity-shape-util";
 
-// TODO Task 9: import { EntityPanel } from "./entity-panel"
+import { EntityPanel } from "./entity-panel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -267,10 +267,43 @@ export function CanvasApp(props: CanvasAppProps) {
       {/* tldraw canvas */}
       <Tldraw store={store} shapeUtils={[EntityShapeUtil]} onMount={handleMount} />
 
-      {/* Entity panel placeholder — Task 9 */}
+      {/* Entity panel — Task 9 */}
       {selectedEntityId && selectedEntityType && (
-        // TODO Task 9: <EntityPanel ... />
-        <div className="absolute inset-y-0 end-0 w-80 border-s border-[#d9d9dd] bg-white" />
+        <EntityPanel
+          entityId={selectedEntityId}
+          entityType={selectedEntityType}
+          orgId={orgId}
+          branchId={branchId}
+          onDelete={() => {
+            // Remove shape from canvas
+            if (editorRef.current) {
+              const shapes = editorRef.current.getCurrentPageShapes();
+              const shape = shapes
+                .filter((s): s is EntityShape => s.type === ENTITY_SHAPE_TYPE)
+                .find((s) => s.props.entityId === selectedEntityId);
+              if (shape) editorRef.current.deleteShapes([shape.id]);
+            }
+            setSelectedEntityId(null);
+            setSelectedEntityType(null);
+          }}
+          onNameChange={(newName) => {
+            if (editorRef.current) {
+              const shapes = editorRef.current.getCurrentPageShapes();
+              const shape = shapes
+                .filter((s): s is EntityShape => s.type === ENTITY_SHAPE_TYPE)
+                .find((s) => s.props.entityId === selectedEntityId);
+              if (shape) {
+                editorRef.current.updateShapes<EntityShape>([
+                  {
+                    id: shape.id,
+                    type: ENTITY_SHAPE_TYPE,
+                    props: { displayName: newName },
+                  },
+                ]);
+              }
+            }
+          }}
+        />
       )}
     </div>
   );
