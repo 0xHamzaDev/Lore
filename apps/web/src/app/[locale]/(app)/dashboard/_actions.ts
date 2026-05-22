@@ -7,10 +7,13 @@ import { db, projects, branches } from "@lore/db";
 import type { Project, Branch } from "@lore/db";
 import type { ActionResult } from "@lore/utils";
 import { and, count, eq, isNull } from "@lore/db";
+import { z } from "zod";
+
+const nameSchema = z.string().min(1).max(100);
 
 export async function listProjects(orgId: string): Promise<ActionResult<Project[]>> {
+  await requireAuth(); // must NOT be inside try/catch — Next.js redirect() throws internally
   try {
-    await requireAuth();
     const rows = await db
       .select()
       .from(projects)
@@ -29,31 +32,41 @@ export async function createProject(data: {
   const authResult = await requireOrgRole(data.orgId, "editor");
   if (!authResult.success) return authResult;
 
-  const sub = await requireSubscription(data.orgId);
-  if (sub.plan === "free") {
-    const countRows = await db
-      .select({ value: count() })
-      .from(projects)
-      .where(and(eq(projects.orgId, data.orgId), isNull(projects.deletedAt)));
-    const value = countRows[0]?.value ?? 0;
-    if (value >= 1) {
-      return { success: false, error: "upgrade_required" };
-    }
+  const trimmed = data.name.trim();
+  const parsed = nameSchema.safeParse(trimmed);
+  if (!parsed.success) {
+    return { success: false, error: "Project name must be between 1 and 100 characters." };
   }
 
-  const projectRows = await db
-    .insert(projects)
-    .values({ orgId: data.orgId, name: data.name.trim() })
-    .returning();
-  const project = projectRows[0]!;
+  try {
+    const sub = await requireSubscription(data.orgId);
+    if (sub.plan === "free") {
+      const countRows = await db
+        .select({ value: count() })
+        .from(projects)
+        .where(and(eq(projects.orgId, data.orgId), isNull(projects.deletedAt)));
+      const value = countRows[0]?.value ?? 0;
+      if (value >= 1) {
+        return { success: false, error: "upgrade_required" };
+      }
+    }
 
-  const branchRows = await db
-    .insert(branches)
-    .values({ projectId: project.id, orgId: data.orgId, name: "main" })
-    .returning();
-  const branch = branchRows[0]!;
+    const { project, branch } = await db.transaction(async (tx) => {
+      const [proj] = await tx
+        .insert(projects)
+        .values({ orgId: data.orgId, name: trimmed })
+        .returning();
+      const [br] = await tx
+        .insert(branches)
+        .values({ projectId: proj!.id, orgId: data.orgId, name: "main" })
+        .returning();
+      return { project: proj!, branch: br! };
+    });
 
-  return { success: true, data: { project, branch } };
+    return { success: true, data: { project, branch } };
+  } catch {
+    return { success: false, error: "Failed to create project." };
+  }
 }
 
 export async function renameProject(data: {
@@ -64,14 +77,24 @@ export async function renameProject(data: {
   const authResult = await requireOrgRole(data.orgId, "editor");
   if (!authResult.success) return authResult;
 
-  const [updated] = await db
-    .update(projects)
-    .set({ name: data.name.trim(), updatedAt: new Date() })
-    .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)))
-    .returning();
+  const trimmed = data.name.trim();
+  const parsed = nameSchema.safeParse(trimmed);
+  if (!parsed.success) {
+    return { success: false, error: "Project name must be between 1 and 100 characters." };
+  }
 
-  if (!updated) return { success: false, error: "Project not found." };
-  return { success: true, data: updated };
+  try {
+    const [updated] = await db
+      .update(projects)
+      .set({ name: trimmed, updatedAt: new Date() })
+      .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)))
+      .returning();
+
+    if (!updated) return { success: false, error: "Project not found." };
+    return { success: true, data: updated };
+  } catch {
+    return { success: false, error: "Failed to rename project." };
+  }
 }
 
 export async function deleteProject(data: {
@@ -81,10 +104,14 @@ export async function deleteProject(data: {
   const authResult = await requireOrgRole(data.orgId, "editor");
   if (!authResult.success) return authResult;
 
-  await db
-    .update(projects)
-    .set({ deletedAt: new Date(), updatedAt: new Date() })
-    .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)));
+  try {
+    await db
+      .update(projects)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)));
 
-  return { success: true, data: undefined };
+    return { success: true, data: undefined };
+  } catch {
+    return { success: false, error: "Failed to delete project." };
+  }
 }
