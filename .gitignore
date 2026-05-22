@@ -1,6 +1,10 @@
 node_modules/
 .turbo/
+.DS_store
+RESEARCH.MD
 dist/
+.specs/
+docs/superpowers/
 .next/
 .wrangler/
 .env
