@@ -6,6 +6,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { EntityType } from "@lore/db";
 import { Clock, Film, MapPin, Shield, User } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
 import type { Editor, TLShapeId } from "tldraw";
 import { toast } from "sonner";
@@ -29,25 +30,13 @@ export interface CanvasAppProps {
 
 // ─── Entity toolbar config ────────────────────────────────────────────────────
 
-const ENTITY_TOOLBAR: {
-  type: EntityType;
-  label: string;
-  Icon: React.ComponentType<{ size?: number; className?: string }>;
-}[] = [
-  { type: "character", label: "Character", Icon: User },
-  { type: "location", label: "Location", Icon: MapPin },
-  { type: "faction", label: "Faction", Icon: Shield },
-  { type: "scene", label: "Scene", Icon: Film },
-  { type: "timeline_event", label: "Event", Icon: Clock },
-];
-
-const DEFAULT_NAMES: Record<EntityType, string> = {
-  character: "New Character",
-  location: "New Location",
-  faction: "New Faction",
-  scene: "New Scene",
-  timeline_event: "New Event",
-};
+const ENTITY_TYPE_KEYS = [
+  { type: "character" as EntityType, tKey: "entityTypes.character", Icon: User },
+  { type: "location" as EntityType, tKey: "entityTypes.location", Icon: MapPin },
+  { type: "faction" as EntityType, tKey: "entityTypes.faction", Icon: Shield },
+  { type: "scene" as EntityType, tKey: "entityTypes.scene", Icon: Film },
+  { type: "timeline_event" as EntityType, tKey: "entityTypes.timelineEvent", Icon: Clock },
+] as const;
 
 // ─── Helper to derive displayName from an AnyEntity-like record ───────────────
 
@@ -60,9 +49,18 @@ function getEntityDisplayName(entity: Record<string, unknown>, type: EntityType)
 
 // ─── CanvasApp ────────────────────────────────────────────────────────────────
 
-export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
+export function CanvasApp(props: CanvasAppProps) {
+  const { projectId, branchId, orgId } = props;
+  // TODO Task 9: pass props.userId and props.userName to EntityPanel for Liveblocks presence
+
+  const t = useTranslations("Canvas");
+  const tCommon = useTranslations("Common");
+
   const { store, loadingState } = useStorageStore();
   const editorRef = useRef<Editor | null>(null);
+
+  // Track editor in state so useEffect can depend on it
+  const [editor, setEditor] = useState<Editor | null>(null);
 
   // Track selected entity shape
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -70,12 +68,17 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
 
   // ── Editor mount ─────────────────────────────────────────────────────────────
 
-  const handleMount = useCallback(
-    (editor: Editor) => {
-      editorRef.current = editor;
+  const handleMount = useCallback((ed: Editor) => {
+    editorRef.current = ed;
+    setEditor(ed);
+  }, []);
 
-      // Listen to store changes to track selection
-      const unsub = store.listen(() => {
+  // ── Subscribe to store changes for selection tracking ─────────────────────────
+
+  useEffect(() => {
+    if (!editor) return;
+    const unsub = store.listen(
+      () => {
         const selectedShapes = editor.getSelectedShapes();
         const entityShape = selectedShapes.find(
           (s): s is EntityShape => s.type === ENTITY_SHAPE_TYPE,
@@ -87,19 +90,18 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
           setSelectedEntityId(null);
           setSelectedEntityType(null);
         }
-      });
-
-      return unsub;
-    },
-    [store],
-  );
+      },
+      { source: "user" },
+    );
+    return unsub; // ← React uses this as cleanup
+  }, [editor, store]);
 
   // ── Canvas shape sync on mount ───────────────────────────────────────────────
 
   useEffect(() => {
     if (loadingState !== "ready") return;
-    const editor = editorRef.current;
-    if (!editor) return;
+    const ed = editorRef.current;
+    if (!ed) return;
 
     const entityTypes: EntityType[] = [
       "character",
@@ -115,7 +117,7 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
         if (!result.success) continue;
 
         // Find entity IDs already represented as shapes
-        const existingShapes = editor
+        const existingShapes = ed
           .getCurrentPageShapes()
           .filter((s): s is EntityShape => s.type === ENTITY_SHAPE_TYPE);
 
@@ -134,7 +136,7 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
             type,
           );
 
-          editor.createShapes<EntityShape>([
+          ed.createShapes<EntityShape>([
             {
               id: shapeId,
               type: ENTITY_SHAPE_TYPE,
@@ -157,22 +159,21 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
   // ── Create entity ─────────────────────────────────────────────────────────────
 
   const handleCreateEntity = useCallback(
-    async (type: EntityType) => {
-      const editor = editorRef.current;
-      if (!editor) return;
+    async (type: EntityType, defaultName: string) => {
+      const ed = editorRef.current;
+      if (!ed) return;
 
       const provisionalId = createId();
-      const defaultName = DEFAULT_NAMES[type];
 
       // Get a position near center of current viewport
-      const viewportBounds = editor.getViewportPageBounds();
+      const viewportBounds = ed.getViewportPageBounds();
       const x = viewportBounds.minX + viewportBounds.width / 2 - 100;
       const y = viewportBounds.minY + viewportBounds.height / 2 - 60;
 
       const shapeId = `shape:${createId()}` as TLShapeId;
 
       // Optimistically create the shape
-      editor.createShapes<EntityShape>([
+      ed.createShapes<EntityShape>([
         {
           id: shapeId,
           type: ENTITY_SHAPE_TYPE,
@@ -199,8 +200,8 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
 
       if (!result.success) {
         // Rollback: delete the optimistic shape
-        editor.deleteShapes([shapeId]);
-        toast.error(result.error ?? "Failed to create entity.");
+        ed.deleteShapes([shapeId]);
+        toast.error(result.error ?? tCommon("error"));
         return;
       }
 
@@ -208,7 +209,7 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
       const entity = result.data;
       const displayName = getEntityDisplayName(entity as unknown as Record<string, unknown>, type);
 
-      editor.updateShapes<EntityShape>([
+      ed.updateShapes<EntityShape>([
         {
           id: shapeId,
           type: ENTITY_SHAPE_TYPE,
@@ -219,7 +220,7 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
         },
       ]);
     },
-    [orgId, projectId, branchId],
+    [orgId, projectId, branchId, tCommon],
   );
 
   // ── Loading / error states ────────────────────────────────────────────────────
@@ -235,7 +236,7 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
   if (loadingState === "error") {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <p className="text-sm text-red-500">Failed to load canvas. Please refresh.</p>
+        <p className="text-sm text-red-500">{tCommon("error")}</p>
       </div>
     );
   }
@@ -244,23 +245,23 @@ export function CanvasApp({ projectId, branchId, orgId }: CanvasAppProps) {
 
   return (
     <div className="relative h-full w-full">
-      {/* Entity type toolbar — RTL-safe: positioned at inline-start */}
-      <div
-        className="absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 rounded-lg border border-[#d9d9dd] bg-white p-2 shadow-sm"
-        style={{ insetInlineStart: "1rem" }}
-      >
-        {ENTITY_TOOLBAR.map(({ type, label, Icon }) => (
-          <button
-            key={type}
-            type="button"
-            title={label}
-            onClick={() => void handleCreateEntity(type)}
-            className="flex flex-col items-center gap-1 rounded-md p-2 text-[#17171c] transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
-          >
-            <Icon size={18} />
-            <span className="text-[10px] font-medium leading-none">{label}</span>
-          </button>
-        ))}
+      {/* Entity type toolbar — RTL-safe: ltr:left-4 rtl:right-4 */}
+      <div className="absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 rounded-lg border border-[#d9d9dd] bg-white p-2 shadow-sm ltr:left-4 rtl:right-4">
+        {ENTITY_TYPE_KEYS.map(({ type, tKey, Icon }) => {
+          const label = t(tKey);
+          return (
+            <button
+              key={type}
+              type="button"
+              title={label}
+              onClick={() => void handleCreateEntity(type, label)}
+              className="flex flex-col items-center gap-1 rounded-md p-2 text-[#17171c] transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
+            >
+              <Icon size={18} />
+              <span className="text-[10px] font-medium leading-none">{label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* tldraw canvas */}
