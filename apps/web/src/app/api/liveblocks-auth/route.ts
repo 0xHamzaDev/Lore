@@ -8,9 +8,10 @@ const liveblocks = new Liveblocks({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await requireAuth();
+  // requireAuth() is OUTSIDE try/catch — let redirect propagate naturally
+  const session = await requireAuth();
 
+  try {
     const body = await request.json();
     const room: string = body.room; // format: "{projectId}:{branchId}"
 
@@ -46,14 +47,7 @@ export async function POST(request: NextRequest) {
 
     const { status, body: responseBody } = await liveblocksSession.authorize();
     return new Response(responseBody, { status });
-  } catch (err) {
-    // Re-throw Next.js redirect errors
-    if (
-      err instanceof Error &&
-      (err.message === "NEXT_REDIRECT" || err.message === "NEXT_NOT_FOUND")
-    ) {
-      throw err;
-    }
+  } catch {
     return new Response("Internal server error", { status: 500 });
   }
 }

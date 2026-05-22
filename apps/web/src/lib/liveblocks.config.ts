@@ -1,3 +1,4 @@
+"use client";
 import { createClient } from "@liveblocks/client";
 import type { Json, LiveMap } from "@liveblocks/client";
 import { createRoomContext, ClientSideSuspense } from "@liveblocks/react";
