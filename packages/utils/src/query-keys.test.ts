@@ -40,3 +40,23 @@ describe("QK.projects.detail", () => {
     expect(QK.projects.detail("proj_a")).not.toEqual(QK.projects.detail("proj_b"));
   });
 });
+
+describe("QK.entities.list", () => {
+  it("returns a stable key for branch + type", () => {
+    expect(QK.entities.list("branch_1", "character")).toEqual([
+      "entities",
+      "branch_1",
+      "character",
+    ]);
+  });
+
+  it("produces different keys for different types", () => {
+    expect(QK.entities.list("b", "character")).not.toEqual(QK.entities.list("b", "location"));
+  });
+});
+
+describe("QK.entities.detail", () => {
+  it("returns a stable key for entity id", () => {
+    expect(QK.entities.detail("char_1")).toEqual(["entities", "char_1"]);
+  });
+});
