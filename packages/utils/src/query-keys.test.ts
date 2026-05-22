@@ -20,3 +20,23 @@ describe("QK.org.invitations", () => {
     expect(QK.org.invitations("org_a")).not.toEqual(QK.org.invitations("org_b"));
   });
 });
+
+describe("QK.projects.list", () => {
+  it("returns a stable key tuple for a given org id", () => {
+    expect(QK.projects.list("org_123")).toEqual(["projects", "org_123"]);
+  });
+
+  it("produces different keys for different org ids", () => {
+    expect(QK.projects.list("org_a")).not.toEqual(QK.projects.list("org_b"));
+  });
+});
+
+describe("QK.projects.detail", () => {
+  it("returns a stable key tuple for a given project id", () => {
+    expect(QK.projects.detail("proj_123")).toEqual(["projects", "proj_123"]);
+  });
+
+  it("produces different keys for different project ids", () => {
+    expect(QK.projects.detail("proj_a")).not.toEqual(QK.projects.detail("proj_b"));
+  });
+});
