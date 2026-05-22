@@ -66,5 +66,21 @@
     "title": "Lore",
     "tagline": "AI-powered creative writing platform",
     "cta": "Get started"
+  },
+  "Projects": {
+    "namePlaceholder": "Project name",
+    "creating": "Creating...",
+    "rename": "Rename",
+    "renameTitle": "Rename project",
+    "delete": "Delete project",
+    "deleteConfirm": "Are you sure you want to delete this project? This cannot be undone.",
+    "lastModified": "Last modified",
+    "branchBadge": "main",
+    "canvasSkeleton": "Loading canvas..."
+  },
+  "Upgrade": {
+    "title": "Upgrade to Pro",
+    "description": "The free plan is limited to one project. Upgrade for unlimited projects.",
+    "cta": "Upgrade plan"
   }
 }
