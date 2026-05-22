@@ -66,6 +66,7 @@
 
 ### General
 
+- Never add claude as co-authored on Github Commits **Strict**
 - Read the relevant doc(s) before writing any code for a task.
 - Never skip auth (`await auth()` or `await requireAuth()`) inside Server Actions.
 - Never throw errors to the client — return `ActionResult<T>` unions.
