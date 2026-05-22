@@ -1,11 +1,31 @@
-import { db, organizations, members } from "@lore/db";
+import {
+  db,
+  organizations,
+  members,
+  users,
+  sessions,
+  accounts,
+  verifications,
+  invitations,
+} from "@lore/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { createId } from "@paralleldrive/cuid2";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "pg" }),
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verifications,
+      organization: organizations,
+      member: members,
+      invitation: invitations,
+    },
+  }),
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
