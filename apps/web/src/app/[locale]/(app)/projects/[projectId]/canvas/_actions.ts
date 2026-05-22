@@ -62,15 +62,22 @@ export async function listEntities(
   branchId: string,
   orgId: string,
 ): Promise<ActionResult<AnyEntity[]>> {
-  await requireAuth(); // redirect throws internally — must be outside try/catch
   try {
+    await requireAuth();
     const table = tableFor(type);
     const rows = await db
       .select()
       .from(table)
       .where(and(eq(table.branchId, branchId), eq(table.orgId, orgId), isNull(table.deletedAt)));
     return { success: true, data: rows as AnyEntity[] };
-  } catch {
+  } catch (err) {
+    // Re-throw Next.js redirect/not-found errors
+    if (
+      err instanceof Error &&
+      (err.message === "NEXT_REDIRECT" || err.message === "NEXT_NOT_FOUND")
+    ) {
+      throw err;
+    }
     return { success: false, error: "Failed to load entities." };
   }
 }
@@ -128,9 +135,13 @@ export async function updateEntity(data: {
 
   try {
     const table = tableFor(data.type);
+    const safePatch = { ...(data.patch as Record<string, unknown>) };
+    for (const key of ["id", "orgId", "projectId", "branchId", "createdAt"]) {
+      delete safePatch[key];
+    }
     const [updated] = await db
       .update(table)
-      .set({ ...data.patch, updatedAt: new Date() })
+      .set({ ...safePatch, updatedAt: new Date() })
       .where(and(eq(table.id, data.entityId), eq(table.orgId, data.orgId)))
       .returning();
 
@@ -155,11 +166,13 @@ export async function deleteEntity(data: {
 
   try {
     const table = tableFor(data.type);
-    await db
+    const [deleted] = await db
       .update(table)
       .set({ deletedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(table.id, data.entityId), eq(table.orgId, data.orgId)));
+      .where(and(eq(table.id, data.entityId), eq(table.orgId, data.orgId)))
+      .returning();
 
+    if (!deleted) return { success: false, error: "Entity not found." };
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: "Failed to delete entity." };
