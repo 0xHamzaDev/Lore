@@ -15,6 +15,13 @@
       "when": 1779158999963,
       "tag": "0001_useful_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779470247171,
+      "tag": "0002_fearless_iceman",
+      "breakpoints": true
     }
   ]
 }

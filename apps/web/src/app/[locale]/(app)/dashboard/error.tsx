@@ -1,14 +1,15 @@
 "use client";
+
 import { useTranslations } from "next-intl";
 import { Button } from "@lore/ui";
 
-export default function DashboardError({ reset }: { error: Error; reset: () => void }) {
+export default function DashboardError({ reset }: { reset: () => void }) {
   const t = useTranslations("Common");
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4">
-      <p className="text-sm text-[#b30000]">{t("error")}</p>
-      <Button variant="outline" onClick={reset} size="sm">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+      <p className="text-sm text-[#93939f]">{t("error")}</p>
+      <Button variant="outline" size="sm" onClick={reset}>
         {t("retry")}
       </Button>
     </div>
