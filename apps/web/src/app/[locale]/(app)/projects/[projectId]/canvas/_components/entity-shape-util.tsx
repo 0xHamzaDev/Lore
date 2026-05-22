@@ -66,7 +66,7 @@ export class EntityShapeUtil extends ShapeUtil<EntityShape> {
     return {
       entityId: "",
       entityType: "character",
-      displayName: "Unnamed",
+      displayName: "Untitled",
       w: 200,
       h: 120,
     };
@@ -110,7 +110,7 @@ export class EntityShapeUtil extends ShapeUtil<EntityShape> {
           style={{
             position: "absolute",
             top: 8,
-            right: 10,
+            insetInlineEnd: 10,
             width: 10,
             height: 10,
             borderRadius: "50%",
