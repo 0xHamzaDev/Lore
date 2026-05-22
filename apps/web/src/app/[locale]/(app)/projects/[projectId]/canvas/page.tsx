@@ -1,8 +1,8 @@
 import { requireAuth } from "@lore/auth/guard";
 import { db, projects, members, branches, eq, and, isNull } from "@lore/db";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { CanvasProvider } from "./_components/canvas-provider";
+import { CanvasApp } from "./_components/canvas-app";
 
 interface CanvasPageProps {
   params: Promise<{ projectId: string; locale: string }>;
@@ -11,7 +11,6 @@ interface CanvasPageProps {
 export default async function CanvasPage({ params }: CanvasPageProps) {
   const { projectId } = await params;
   const session = await requireAuth();
-  const t = await getTranslations("Projects");
 
   const project = await db
     .select({ id: projects.id, orgId: projects.orgId, name: projects.name })
@@ -43,16 +42,13 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
     <div className="flex h-full w-full flex-col">
       <h1 className="sr-only">{project[0].name}</h1>
       <CanvasProvider roomId={`${project[0].id}:${branch.id}`}>
-        {/* TODO Task 8: Replace with <CanvasApp
-              projectId={project[0].id}
-              branchId={branch.id}
-              orgId={project[0].orgId}
-              userId={session.user.id}
-              userName={session.user.name ?? "Anonymous"}
-            /> */}
-        <div className="flex h-full w-full items-center justify-center">
-          <p className="text-sm text-[#93939f]">{t("canvasSkeleton")}</p>
-        </div>
+        <CanvasApp
+          projectId={project[0].id}
+          branchId={branch.id}
+          orgId={project[0].orgId}
+          userId={session.user.id}
+          userName={session.user.name ?? "Anonymous"}
+        />
       </CanvasProvider>
     </div>
   );
