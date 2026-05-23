@@ -191,3 +191,6 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 - Interactive elements have visible focus rings (`focus-visible:ring-2 ring-focusBlue`).
 - RTL layouts use `rtl:` Tailwind variants — never hardcode directional margins/paddings.
 - All icons paired with text; standalone icons have `aria-label`.
+
+## Fonts
+- In Arabic language use IBM Plex Sans Arabic

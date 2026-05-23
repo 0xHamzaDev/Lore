@@ -40,7 +40,7 @@ export const auth = betterAuth({
         const { Resend } = await import("resend");
         const resend = new Resend(process.env["RESEND_API_KEY"]);
         const baseUrl = process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000";
-        const acceptUrl = `${baseUrl}/ar/accept-invitation/${data.id}`;
+        const acceptUrl = `${baseUrl}/accept-invitation/${data.id}`;
 
         await resend.emails.send({
           from: "Lore <noreply@lore.app>",
@@ -83,7 +83,13 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000"],
+  trustedOrigins: [
+    process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000",
+    // Accept any localhost port in development so Next.js auto-port-bumping (3000→3001→3002) still works.
+    ...(process.env["NODE_ENV"] !== "production"
+      ? ["http://localhost:3001", "http://localhost:3002", "http://localhost:3003"]
+      : []),
+  ],
 });
 
 export type Auth = typeof auth;

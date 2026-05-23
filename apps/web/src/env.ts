@@ -8,6 +8,7 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url(),
     RESEND_API_KEY: z.string().min(1),
+    LIVEBLOCKS_SECRET_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
@@ -19,6 +20,7 @@ export const env = createEnv({
     BETTER_AUTH_URL: process.env["BETTER_AUTH_URL"],
     RESEND_API_KEY: process.env["RESEND_API_KEY"],
     NEXT_PUBLIC_APP_URL: process.env["NEXT_PUBLIC_APP_URL"],
+    LIVEBLOCKS_SECRET_KEY: process.env["LIVEBLOCKS_SECRET_KEY"],
   },
   skipValidation: !!process.env["SKIP_ENV_VALIDATION"],
 });

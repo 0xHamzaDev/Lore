@@ -50,7 +50,13 @@ const FormLabel = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof Label>
 >(({ className, ...props }, ref) => {
   const { error } = useFormField();
-  return <Label ref={ref} className={cn(error && "text-[#b30000]", className)} {...props} />;
+  return (
+    <Label
+      ref={ref}
+      className={cn("text-sm text-ink", error && "text-error", className)}
+      {...props}
+    />
+  );
 });
 FormLabel.displayName = "FormLabel";
 
@@ -70,7 +76,7 @@ const FormMessage = React.forwardRef<
   const body = error ? String(error?.message) : children;
   if (!body) return null;
   return (
-    <p ref={ref} className={cn("text-xs text-[#b30000]", className)} {...props}>
+    <p ref={ref} className={cn("text-xs text-error", className)} {...props}>
       {body}
     </p>
   );

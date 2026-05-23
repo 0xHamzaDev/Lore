@@ -1,9 +1,16 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { DirectionProvider } from "@radix-ui/react-direction";
 import { Toaster } from "@lore/ui";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  dir = "ltr",
+}: {
+  children: React.ReactNode;
+  dir?: "ltr" | "rtl";
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -12,9 +19,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster richColors position="top-center" />
-    </QueryClientProvider>
+    <DirectionProvider dir={dir}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster richColors position="top-center" dir={dir} />
+      </QueryClientProvider>
+    </DirectionProvider>
   );
 }

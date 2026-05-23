@@ -4,7 +4,7 @@ import { db, projects, members, and, eq, isNull } from "@lore/db";
 import type { NextRequest } from "next/server";
 
 const liveblocks = new Liveblocks({
-  secret: process.env.LIVEBLOCKS_SECRET_KEY!,
+  secret: process.env["LIVEBLOCKS_SECRET_KEY"]!,
 });
 
 export async function POST(request: NextRequest) {

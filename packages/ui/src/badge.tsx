@@ -7,9 +7,10 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-[#17171c] text-white",
-        outline: "border-[#d9d9dd] text-[#616161]",
-        coral: "border-[#ff7759] text-[#ff7759]",
+        default: "border-transparent bg-primary text-canvas",
+        outline: "border-hairline text-body-muted",
+        coral: "border-coral text-coral",
+        mono: "border-hairline bg-canvas text-muted font-mono uppercase tracking-widest text-[10px] px-2 py-0.5",
       },
     },
     defaultVariants: { variant: "default" },

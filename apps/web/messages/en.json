@@ -6,13 +6,23 @@
     "email": "Email",
     "password": "Password",
     "name": "Name",
-    "emailPlaceholder": "example@email.com",
+    "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "••••••••",
     "namePlaceholder": "Your full name",
-    "signingIn": "Signing in...",
-    "signingUp": "Creating account...",
+    "signingIn": "Signing in…",
+    "signingUp": "Creating account…",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
+    "signUpTitle": "Create your account",
+    "signUpSubtitle": "Start building your world.",
+    "signInTitle": "Welcome back",
+    "signInSubtitle": "Sign in to your worlds.",
+    "forgotPassword": "Forgot password?",
+    "acceptTitle": "You've been invited",
+    "acceptDescription": "Join {orgName} on Lore.",
+    "acceptCta": "Accept invitation",
+    "accepting": "Accepting…",
+    "acceptSignUpHint": "Create an account with this email to accept.",
     "errors": {
       "invalidCredentials": "Invalid email or password",
       "emailTaken": "This email is already in use",
@@ -21,20 +31,61 @@
   },
   "Dashboard": {
     "title": "Projects",
-    "description": "Manage your projects and stories",
+    "description": "Build and manage your worlds.",
     "emptyTitle": "No projects yet",
-    "emptyDescription": "Start your first story now",
-    "newProject": "New project"
+    "emptyDescription": "Create your first world to start building.",
+    "newProject": "New project",
+    "loadFailed": "Couldn't load your projects",
+    "loadFailedDescription": "We hit a snag fetching your projects. Try again in a moment."
   },
   "Settings": {
+    "title": "Settings",
+    "description": "Manage your account and workspace.",
+    "tabs": {
+      "profile": "Profile",
+      "org": "Organization"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your personal information.",
+      "account": "Account",
+      "accountDescription": "Your identity on Lore.",
+      "preferences": "Preferences",
+      "preferencesDescription": "How Lore behaves for you.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailReadonly": "Email changes require verification — coming soon.",
+      "avatar": "Profile picture",
+      "avatarUpload": "Upload",
+      "avatarComingSoon": "Avatar upload is coming soon.",
+      "language": "Language",
+      "languageArabic": "Arabic",
+      "languageEnglish": "English",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Profile updated"
+    },
     "org": {
-      "title": "Organization settings",
+      "title": "Organization",
+      "description": "Manage members and invitations.",
+      "general": "General",
+      "generalDescription": "Information about your workspace.",
+      "orgName": "Workspace name",
+      "orgSlug": "Slug",
+      "createdAt": "Created",
       "members": "Members",
+      "membersDescription": "Everyone with access to this workspace.",
+      "noMembers": "No members yet",
+      "invitations": "Invitations",
+      "invitationsDescription": "Pending invitations to this workspace.",
+      "noInvitations": "No pending invitations",
       "invite": "Invite member",
       "inviteEmail": "Email address",
       "inviteRole": "Role",
-      "inviting": "Sending invite...",
+      "inviting": "Sending invite…",
       "sendInvite": "Send invite",
+      "revoke": "Revoke",
       "roles": {
         "owner": "Owner",
         "editor": "Editor",
@@ -43,40 +94,179 @@
       "removeConfirm": "Are you sure you want to remove this member?",
       "removeMember": "Remove",
       "changeRole": "Change role",
-      "inviteSent": "Invitation sent successfully",
+      "inviteSent": "Invitation sent",
       "memberRemoved": "Member removed",
-      "roleUpdated": "Role updated"
+      "roleUpdated": "Role updated",
+      "invitationRevoked": "Invitation revoked"
     }
   },
   "Nav": {
     "dashboard": "Projects",
     "settings": "Settings",
-    "org": "Organization"
+    "org": "Organization",
+    "profile": "Profile",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "signOut": "Sign out"
   },
   "Common": {
-    "loading": "Loading...",
+    "loading": "Loading…",
     "error": "Something went wrong",
     "retry": "Try again",
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "back": "Back",
+    "close": "Close",
+    "edit": "Edit",
+    "more": "More options"
   },
   "Marketing": {
     "title": "Lore",
     "tagline": "AI-powered creative writing platform",
-    "cta": "Get started"
+    "cta": "Get started",
+    "announcement": "Lore is now in early access",
+    "announcementLink": "Join the waitlist",
+    "announcementClose": "Dismiss",
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "signIn": "Sign in",
+      "getStarted": "Get started"
+    },
+    "hero": {
+      "eyebrow": "AI-native worldbuilding",
+      "headline": "Build worlds that breathe.",
+      "sub": "Give your story's characters, places, and factions a shared memory — built and connected by AI.",
+      "cta": "Start building",
+      "secondaryCta": "See how it works",
+      "mockup": {
+        "character": "Aria Voss",
+        "characterMeta": "Protagonist · Age 28",
+        "location": "The Citadel",
+        "locationMeta": "Northern province",
+        "faction": "Iron Council",
+        "factionMeta": "6 members · Neutral",
+        "event": "The Siege",
+        "eventMeta": "Day 143",
+        "status": "AI · 4 entities connected"
+      }
+    },
+    "trust": {
+      "label": "Trusted by storytellers worldwide"
+    },
+    "features": {
+      "characters": {
+        "label": "Characters",
+        "heading": "A cast that comes alive",
+        "body": "Every character has a living profile — backstory, relationships, voice, and arc. AI keeps them consistent as your story grows.",
+        "card": {
+          "role": "Role",
+          "roleValue": "Protagonist",
+          "age": "Age",
+          "ageValue": "28",
+          "backstory": "Backstory",
+          "backstoryValue": "Former intelligence officer turned renegade…",
+          "aiHint": "AI · Profile updated from Chapter 3"
+        }
+      },
+      "canvas": {
+        "label": "The canvas",
+        "heading": "One surface for your entire world",
+        "body": "Connect characters, locations, factions, and events on an infinite collaborative canvas. See how every thread ties together.",
+        "feature1": "Real-time collaboration",
+        "feature2": "AI-powered suggestions",
+        "feature3": "Auto-save, always"
+      },
+      "timeline": {
+        "label": "Timeline",
+        "heading": "Every moment, in order",
+        "body": "Plot your story's events across a timeline. Lore tracks what happened when, and surfaces inconsistencies before they become plot holes.",
+        "events": {
+          "day1": "Day 1",
+          "day1Label": "The Council convenes",
+          "day43": "Day 43",
+          "day43Label": "Aria discovers the vault",
+          "day97": "Day 97",
+          "day97Label": "Iron Council fractures",
+          "day143": "Day 143",
+          "day143Label": "The Siege begins"
+        }
+      }
+    },
+    "entities": {
+      "heading": "Everything your world needs",
+      "sub": "Five entity types — fully interconnected.",
+      "more": "+ more coming",
+      "moreDesc": "Artifacts, relationships, lore entries, and more.",
+      "character": {
+        "name": "Characters",
+        "desc": "Backstory, voice, relationships, and arc — all in one profile."
+      },
+      "location": {
+        "name": "Locations",
+        "desc": "Climate, culture, history, and the characters who inhabit them."
+      },
+      "faction": {
+        "name": "Factions",
+        "desc": "Ideology, goals, and the alliances that shape your world's politics."
+      },
+      "scene": {
+        "name": "Scenes",
+        "desc": "Beat-by-beat breakdowns with setting, characters, and outcomes."
+      },
+      "event": {
+        "name": "Timeline Events",
+        "desc": "A chronological record of every moment that matters."
+      }
+    },
+    "ctaSection": {
+      "heading": "Your world is waiting.",
+      "sub": "Start building for free. No credit card required.",
+      "cta": "Create your first world",
+      "guarantee1": "No credit card required",
+      "guarantee2": "Free to start",
+      "guarantee3": "Cancel anytime"
+    },
+    "footer": {
+      "newsletter": {
+        "label": "Stay in the story",
+        "heading": "Get updates from Lore.",
+        "placeholder": "your@email.com",
+        "submit": "Subscribe"
+      },
+      "product": "Product",
+      "company": "Company",
+      "links": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "changelog": "Changelog",
+        "about": "About",
+        "blog": "Blog",
+        "careers": "Careers"
+      },
+      "legal": "© 2026 Lore. All rights reserved.",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
   },
   "Projects": {
     "namePlaceholder": "Project name",
-    "creating": "Creating...",
+    "creating": "Creating…",
     "rename": "Rename",
     "renameTitle": "Rename project",
     "delete": "Delete project",
     "deleteConfirm": "Are you sure you want to delete this project? This cannot be undone.",
     "lastModified": "Last modified",
     "branchBadge": "main",
-    "canvasSkeleton": "Loading canvas..."
+    "canvasSkeleton": "Loading canvas…",
+    "create": "New project",
+    "createTitle": "Create a project",
+    "createDescription": "Give your world a name to start.",
+    "createCta": "Create project",
+    "menu": "More options",
+    "open": "Open"
   },
   "Upgrade": {
     "title": "Upgrade to Pro",
@@ -94,7 +284,7 @@
     "addEntity": "Add entity",
     "deleteEntity": "Delete entity",
     "deleteConfirm": "Are you sure you want to delete this entity? This cannot be undone.",
-    "saving": "Saving...",
+    "saving": "Saving…",
     "saved": "Saved"
   },
   "Entity": {
