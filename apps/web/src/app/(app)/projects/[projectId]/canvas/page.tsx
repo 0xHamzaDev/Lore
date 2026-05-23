@@ -1,15 +1,18 @@
 import { requireAuth } from "@lore/auth/guard";
-import { db, projects, members, branches, eq, and, isNull } from "@lore/db";
+import { db, projects, members, branches, eq, and, isNull, asc } from "@lore/db";
 import { notFound } from "next/navigation";
 import { CanvasProvider } from "./_components/canvas-provider";
 import { CanvasApp } from "./_components/canvas-app";
+import { BranchSwitcher } from "./_components/branch-switcher";
 
 interface CanvasPageProps {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ branchId?: string }>;
 }
 
-export default async function CanvasPage({ params }: CanvasPageProps) {
+export default async function CanvasPage({ params, searchParams }: CanvasPageProps) {
   const { projectId } = await params;
+  const { branchId: requestedBranchId } = await searchParams;
   const session = await requireAuth();
 
   const project = await db
@@ -36,24 +39,43 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
     .select({ id: branches.id, name: branches.name })
     .from(branches)
     .where(and(eq(branches.projectId, project[0].id), eq(branches.orgId, project[0].orgId)))
-    .limit(1);
+    .orderBy(asc(branches.createdAt));
 
   if (!branchRows[0]) notFound();
 
-  const branch = branchRows[0];
+  // Resolve the active branch from ?branchId=. An absent or unknown id (e.g. a
+  // tampered URL, or a branch from another project) falls back to main, which
+  // is branchRows[0] because main is created first and the list is createdAt-asc.
+  const currentBranch = branchRows.find((b) => b.id === requestedBranchId) ?? branchRows[0];
+  const roomId = `${project[0].id}:${currentBranch.id}`;
 
   return (
     <div className="flex h-full w-full flex-col">
       <h1 className="sr-only">{project[0].name}</h1>
-      <CanvasProvider roomId={`${project[0].id}:${branch.id}`}>
-        <CanvasApp
+      <div className="flex h-12 shrink-0 items-center border-b border-[#e5e5e7] bg-white px-4">
+        <BranchSwitcher
           projectId={project[0].id}
-          branchId={branch.id}
           orgId={project[0].orgId}
-          userId={session.user.id}
-          userName={session.user.name ?? "Anonymous"}
+          currentBranchId={currentBranch.id}
+          branches={branchRows}
         />
-      </CanvasProvider>
+      </div>
+      {/* key={roomId} remounts the room subtree on branch switch: the tldraw
+          store is created+seeded once per mount, so a fresh mount is how the
+          new branch's entities load and the old branch's shapes are dropped.
+          The Liveblocks client is a module singleton, so only the room
+          reconnects — nothing higher in the tree tears down. */}
+      <div className="relative min-h-0 flex-1">
+        <CanvasProvider key={roomId} roomId={roomId}>
+          <CanvasApp
+            projectId={project[0].id}
+            branchId={currentBranch.id}
+            orgId={project[0].orgId}
+            userId={session.user.id}
+            userName={session.user.name ?? "Anonymous"}
+          />
+        </CanvasProvider>
+      </div>
     </div>
   );
 }
