@@ -8,7 +8,7 @@ import { Clock, Film, MapPin, Shield, User } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
-import type { Editor, TLShapeId } from "tldraw";
+import type { Editor, TLComponents, TLShapeId } from "tldraw";
 import { toast } from "sonner";
 
 import { useStorageStore } from "../_hooks/use-storage-store";
@@ -38,6 +38,10 @@ const ENTITY_TYPE_KEYS = [
   { type: "scene" as EntityType, tKey: "entityTypes.scene", Icon: Film },
   { type: "timeline_event" as EntityType, tKey: "entityTypes.timelineEvent", Icon: Clock },
 ] as const;
+
+// Disable tldraw's built-in context menu — Phase 3.5 replaces it with the
+// custom "Add entity" menu wired below.
+const TLDRAW_COMPONENTS: TLComponents = { ContextMenu: null };
 
 // ─── Helper to derive displayName from an AnyEntity-like record ───────────────
 
@@ -334,14 +338,19 @@ export function CanvasApp(props: CanvasAppProps) {
           type="button"
           onClick={handleResetRoom}
           title="Dev only: clear all shapes in this Liveblocks room"
-          className="absolute top-4 z-10 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-100 ltr:right-4 rtl:left-4"
+          className="absolute left-1/2 top-2 z-[100] -translate-x-1/2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-100"
         >
           Reset room (dev)
         </button>
       )}
 
       {/* tldraw canvas — store already carries default + Entity shape/binding utils. */}
-      <Tldraw store={store} shapeUtils={[EntityShapeUtil]} onMount={handleMount} />
+      <Tldraw
+        store={store}
+        shapeUtils={[EntityShapeUtil]}
+        components={TLDRAW_COMPONENTS}
+        onMount={handleMount}
+      />
 
       {/* Right-click "Add entity" context menu — only on empty canvas. */}
       {contextMenu && (
@@ -350,7 +359,7 @@ export function CanvasApp(props: CanvasAppProps) {
           aria-label={t("addEntity")}
           onMouseDown={(e) => e.stopPropagation()}
           style={{ top: contextMenu.clientY, left: contextMenu.clientX }}
-          className="absolute z-20 min-w-[180px] rounded-lg border border-[#d9d9dd] bg-white py-1 shadow-lg"
+          className="absolute z-[200] min-w-[180px] rounded-lg border border-[#d9d9dd] bg-white py-1 shadow-lg"
         >
           <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#6b7280]">
             {t("addEntity")}
