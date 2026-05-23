@@ -13,6 +13,7 @@ import {
   projects,
   branches,
   and,
+  asc,
   eq,
   isNull,
 } from "@lore/db";
@@ -24,8 +25,37 @@ import type {
   TimelineEvent,
   EntityType,
   AnyEntity,
+  Branch,
 } from "@lore/db";
 import type { ActionResult } from "@lore/utils";
+
+// ---------------------------------------------------------------------------
+// Shared: project access guard
+// Allows either explicit members row OR personal-org owner (matches
+// canvas/page.tsx and /api/liveblocks-auth — the Phase 3.5 fix).
+// ---------------------------------------------------------------------------
+
+async function userCanAccessProject(
+  projectId: string,
+  userId: string,
+  activeOrgId: string | null | undefined,
+): Promise<{ ok: true; orgId: string } | { ok: false }> {
+  const [project] = await db
+    .select({ orgId: projects.orgId })
+    .from(projects)
+    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)));
+  if (!project) return { ok: false };
+
+  const [membership] = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.organizationId, project.orgId), eq(members.userId, userId)));
+  if (membership) return { ok: true, orgId: project.orgId };
+
+  if (project.orgId === activeOrgId) return { ok: true, orgId: project.orgId };
+
+  return { ok: false };
+}
 
 // ---------------------------------------------------------------------------
 // Table resolver
@@ -220,5 +250,181 @@ export async function getCanvasData(
     return { success: true, data: { projectId, branchId: branch.id, orgId } };
   } catch {
     return { success: false, error: "Failed to load canvas data." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Branch read/fork actions (Phase 4)
+// ---------------------------------------------------------------------------
+
+export type BranchSummary = {
+  id: string;
+  name: string;
+  parentBranchId: string | null;
+  createdAt: Date;
+};
+
+export async function listBranches(
+  projectId: string,
+  orgId: string,
+): Promise<ActionResult<{ branches: BranchSummary[] }>> {
+  const session = await requireAuth();
+
+  try {
+    const access = await userCanAccessProject(
+      projectId,
+      session.user.id,
+      session.session.activeOrganizationId,
+    );
+    if (!access.ok || access.orgId !== orgId) {
+      return { success: false, error: "Project not accessible." };
+    }
+
+    const rows = await db
+      .select({
+        id: branches.id,
+        name: branches.name,
+        parentBranchId: branches.parentBranchId,
+        createdAt: branches.createdAt,
+      })
+      .from(branches)
+      .where(and(eq(branches.projectId, projectId), eq(branches.orgId, orgId)))
+      .orderBy(asc(branches.createdAt));
+
+    return { success: true, data: { branches: rows } };
+  } catch {
+    return { success: false, error: "Failed to load branches." };
+  }
+}
+
+// Copy all live rows of one entity table from a source branch to a new branch.
+// Drops id/createdAt/updatedAt so Drizzle defaults regenerate them.
+async function copyEntityTable(
+  table: EntityTable,
+  sourceBranchId: string,
+  newBranchId: string,
+  orgId: string,
+): Promise<void> {
+  const rows = await db
+    .select()
+    .from(table)
+    .where(
+      and(eq(table.branchId, sourceBranchId), eq(table.orgId, orgId), isNull(table.deletedAt)),
+    );
+  if (rows.length === 0) return;
+
+  const cloned = rows.map((row) => {
+    const copy = { ...(row as Record<string, unknown>) };
+    delete copy.id;
+    delete copy.createdAt;
+    delete copy.updatedAt;
+    copy.branchId = newBranchId;
+    return copy;
+  });
+
+  // Union of insert-values across 5 tables isn't narrowable here.
+  await db.insert(table).values(cloned as never);
+}
+
+export type ForkBranchError =
+  | "name_required"
+  | "name_too_long"
+  | "duplicate_name"
+  | "source_not_found"
+  | "fork_failed";
+
+export async function forkBranch(input: {
+  projectId: string;
+  orgId: string;
+  sourceBranchId: string;
+  name: string;
+}): Promise<
+  ActionResult<{
+    branch: { id: string; name: string; parentBranchId: string; createdAt: Date };
+  }>
+> {
+  const authResult = await requireOrgRole(input.orgId, "editor");
+  if (!authResult.success) return authResult;
+
+  const trimmed = input.name.trim();
+  if (trimmed.length === 0) return { success: false, error: "name_required" };
+  if (trimmed.length > 50) return { success: false, error: "name_too_long" };
+
+  // Verify source branch belongs to (project, org).
+  const [source] = await db
+    .select({ id: branches.id })
+    .from(branches)
+    .where(
+      and(
+        eq(branches.id, input.sourceBranchId),
+        eq(branches.projectId, input.projectId),
+        eq(branches.orgId, input.orgId),
+      ),
+    );
+  if (!source) return { success: false, error: "source_not_found" };
+
+  // Insert the new branch row. UNIQUE(project_id, name) catches duplicates.
+  let newBranch: Branch | undefined;
+  try {
+    [newBranch] = await db
+      .insert(branches)
+      .values({
+        projectId: input.projectId,
+        orgId: input.orgId,
+        name: trimmed,
+        parentBranchId: input.sourceBranchId,
+      })
+      .returning();
+  } catch (err) {
+    const message = String((err as Error)?.message ?? "");
+    if (
+      message.includes("branches_project_id_name_unique") ||
+      message.toLowerCase().includes("duplicate")
+    ) {
+      return { success: false, error: "duplicate_name" };
+    }
+    console.error("[forkBranch] insert branch failed", err);
+    return { success: false, error: "fork_failed" };
+  }
+  if (!newBranch || !newBranch.parentBranchId) {
+    return { success: false, error: "fork_failed" };
+  }
+
+  // neon-http has no transactions. Copy each table sequentially; on any
+  // failure, delete inserted rows in reverse order and drop the branch row.
+  const tablesInOrder: EntityTable[] = [characters, locations, factions, scenes, timelineEvents];
+  const touched: EntityTable[] = [];
+
+  try {
+    for (const table of tablesInOrder) {
+      await copyEntityTable(table, input.sourceBranchId, newBranch.id, input.orgId);
+      touched.push(table);
+    }
+    return {
+      success: true,
+      data: {
+        branch: {
+          id: newBranch.id,
+          name: newBranch.name,
+          parentBranchId: newBranch.parentBranchId,
+          createdAt: newBranch.createdAt,
+        },
+      },
+    };
+  } catch (err) {
+    console.error("[forkBranch] copy failed; rolling back", err);
+    for (const table of [...touched].reverse()) {
+      try {
+        await db.delete(table).where(eq(table.branchId, newBranch.id));
+      } catch (rbErr) {
+        console.error("[forkBranch] rollback delete failed", rbErr);
+      }
+    }
+    try {
+      await db.delete(branches).where(eq(branches.id, newBranch.id));
+    } catch (rbErr) {
+      console.error("[forkBranch] rollback branch delete failed", rbErr);
+    }
+    return { success: false, error: "fork_failed" };
   }
 }
