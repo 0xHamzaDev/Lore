@@ -31,7 +31,11 @@
 | Drizzle queries | `packages/db/src/queries/` |
 | DB client | `packages/db/src/client.ts` |
 | Auth config | `packages/auth/src/` |
-| AI wrappers | `packages/ai/src/` |
+| AI wrappers | `packages/ai/src/` (`streamModelText`) |
+| API gateway (Hono/Worker) | `apps/api/src/` |
+| Agents server (Node) | `apps/agents/src/` (`runAgent`, `/internal/agent-run`) |
+| AI proxy route handlers | `apps/web/src/app/api/ai/` |
+| Gateway token util | `packages/utils/src/gateway-token.ts` |
 | Shared utils | `packages/utils/src/` |
 | Route constants | `packages/utils/src/routes.ts` |
 | TanStack Query keys | `packages/utils/src/query-keys.ts` |
@@ -106,8 +110,11 @@
 
 ### AI
 
-- Log every AI operation to the `ai_runs` table for billing and observability.
-- Streaming responses use the `/api/chat` route handler pattern (see `server/server-functions.md`).
+- Log every AI operation to the `ai_runs` table for billing and observability. The agents server's `runAgent` is the single sink (`apps/agents/src/logger.ts`); failures still write a `status = error` row.
+- The browser never reaches the AI backend directly. Request chain: **Next.js route handler (`apps/web/src/app/api/ai/*`) → Hono gateway (`apps/api`, :8787) → agents server (`apps/agents`, :4000) → Anthropic**.
+- Auth between hops: the Next handler mints a short-lived HMAC token (`signGatewayToken`, `API_GATEWAY_SECRET`) that the gateway verifies; the gateway calls the agents server with the static `INTERNAL_AGENT_TOKEN` header. Never call the gateway or agents server from the browser.
+- All model calls go through `streamModelText` in `packages/ai` (Vercel AI SDK + Anthropic). Use the exact model IDs in `MODELS` — never date-suffix them.
+- Local dev env: `apps/web/.env.local` needs `API_GATEWAY_URL` + `API_GATEWAY_SECRET`; copy `apps/api/.env.example` → `apps/api/.dev.vars` and `apps/agents/.env.example` → `apps/agents/.env`. `INTERNAL_AGENT_TOKEN` must match across api + agents; `API_GATEWAY_SECRET` must match across web + api. `pnpm dev` boots all three (web :3000, api :8787, agents :4000).
 
 ### Feature Checklist (before marking done)
 
