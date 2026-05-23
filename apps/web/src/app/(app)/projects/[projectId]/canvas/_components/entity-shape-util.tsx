@@ -3,7 +3,14 @@
 import type { EntityType } from "@lore/db";
 import { Clock, Film, MapPin, Shield, User } from "lucide-react";
 import type React from "react";
-import { HTMLContainer, Rectangle2d, ShapeUtil, T } from "tldraw";
+import {
+  HTMLContainer,
+  Rectangle2d,
+  ShapeUtil,
+  T,
+  createShapePropsMigrationIds,
+  createShapePropsMigrationSequence,
+} from "tldraw";
 import type { RecordProps, TLShape } from "tldraw";
 
 // ─── Module augmentation: register the shape with tldraw's type system ─────────
@@ -49,6 +56,36 @@ const ENTITY_BG: Record<EntityType, string> = {
   timeline_event: "#fff3f0",
 };
 
+// ─── Migrations ───────────────────────────────────────────────────────────────
+// Establishes the versioning baseline so future props changes can ship as
+// up/down migrations instead of crashing the canvas on seed.
+
+export const entityShapeVersions = createShapePropsMigrationIds(ENTITY_SHAPE_TYPE, {
+  Initial: 1,
+});
+
+export const entityShapeMigrations = createShapePropsMigrationSequence({
+  sequence: [
+    {
+      id: entityShapeVersions.Initial,
+      // Records persisted before this version may be missing newer fields or
+      // carry legacy ones. Coerce them into the current shape rather than
+      // throwing — the canvas can still render with safe defaults.
+      up: (props) => {
+        if (typeof props["entityId"] !== "string") props["entityId"] = "";
+        if (typeof props["displayName"] !== "string") props["displayName"] = "Untitled";
+        if (typeof props["w"] !== "number") props["w"] = 200;
+        if (typeof props["h"] !== "number") props["h"] = 120;
+        const validTypes = ["character", "location", "faction", "scene", "timeline_event"];
+        if (!validTypes.includes(props["entityType"] as string)) {
+          props["entityType"] = "character";
+        }
+      },
+      down: "retired",
+    },
+  ],
+});
+
 // ─── ShapeUtil ────────────────────────────────────────────────────────────────
 
 export class EntityShapeUtil extends ShapeUtil<EntityShape> {
@@ -61,6 +98,8 @@ export class EntityShapeUtil extends ShapeUtil<EntityShape> {
     w: T.number,
     h: T.number,
   };
+
+  static override migrations = entityShapeMigrations;
 
   override getDefaultProps(): EntityShape["props"] {
     return {

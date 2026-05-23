@@ -26,7 +26,11 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
     .where(and(eq(members.organizationId, project[0].orgId), eq(members.userId, session.user.id)))
     .limit(1);
 
-  if (!membership[0]) notFound();
+  // Mirror /api/liveblocks-auth: allow either explicit member row OR active-org owner.
+  // Keeps personal-org owners (whose members row may be missing in edge cases) from being 404'd.
+  const isMember = Boolean(membership[0]);
+  const isActiveOrgOwner = project[0].orgId === session.session.activeOrganizationId;
+  if (!isMember && !isActiveOrgOwner) notFound();
 
   const branchRows = await db
     .select({ id: branches.id, name: branches.name })
