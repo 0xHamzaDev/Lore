@@ -85,8 +85,21 @@ export function useStorageStore(): UseStorageStoreResult {
     }
 
     if (existing.length > 0) {
+      // Per-record put: a single malformed legacy record must not crash the
+      // entire seed. The migration sequence on EntityShapeUtil handles the
+      // common cases; this is defense for everything else.
       store.mergeRemoteChanges(() => {
-        store.put(existing, "initialize");
+        for (const record of existing) {
+          try {
+            store.put([record], "initialize");
+          } catch (err) {
+            console.warn("[useStorageStore] skipping malformed record on seed", {
+              recordId: (record as { id?: string }).id,
+              recordType: (record as { typeName?: string }).typeName,
+              error: err instanceof Error ? err.message : err,
+            });
+          }
+        }
       });
     }
 
@@ -94,6 +107,18 @@ export function useStorageStore(): UseStorageStoreResult {
   }, [liveblocksRecords, store]);
 
   // ── Step 2: Subscribe to local store changes → push to Liveblocks ──────────
+  //
+  // Architectural invariant — Liveblocks/Postgres split (see .specs/lore-mvp/phases.md):
+  //   • Liveblocks Storage = source of truth for shape geometry (x, y, rotation, w/h)
+  //     and any other tldraw-managed record fields.
+  //   • Postgres entity tables = source of truth for entity *content* (name, traits,
+  //     relations, etc.) and are only written via Server Actions in `_actions.ts`.
+  //
+  // This listener forwards every "user"-sourced TLRecord change straight to the
+  // Liveblocks LiveMap. It must NEVER call a Postgres-touching Server Action,
+  // otherwise bulk multi-select moves would explode into N entity-table UPDATE
+  // statements per drag frame. Position-only updates stay in Liveblocks by
+  // design — verified by story #19 (Phase 3.5).
   useEffect(() => {
     if (loadingState !== "ready") return;
 
