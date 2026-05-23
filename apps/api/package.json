@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --port 8787",
     "build": "wrangler deploy --dry-run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src"
   },
   "dependencies": {
     "@lore/db": "workspace:*",
+    "@lore/utils": "workspace:*",
     "@lore/validators": "workspace:*",
     "hono": "^4.6.0"
   },

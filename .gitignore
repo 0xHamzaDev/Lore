@@ -12,3 +12,6 @@ docs/superpowers/
 *.env.local
 *.tsbuildinfo
 .playwright-mcp/
+
+# Cloudflare Worker local secrets
+.dev.vars

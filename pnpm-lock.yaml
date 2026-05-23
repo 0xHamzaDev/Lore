@@ -54,6 +54,9 @@ importers:
       '@lore/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@lore/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@lore/validators':
         specifier: workspace:*
         version: link:../../packages/validators
