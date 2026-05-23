@@ -121,8 +121,13 @@ export function CanvasApp(props: CanvasAppProps) {
 
   useEffect(() => {
     if (loadingState !== "ready") return;
-    const ed = editorRef.current;
-    if (!ed) return;
+    // Depend on the editor *state*, not editorRef: when the store becomes ready
+    // Tldraw has not necessarily fired onMount yet, so editorRef.current can
+    // still be null on this pass. Keying off `editor` re-runs the seed once it
+    // mounts — without this, a freshly-forked (empty) room never gets its
+    // Postgres entities turned into shapes.
+    if (!editor) return;
+    const ed = editor;
 
     const entityTypes: EntityType[] = [
       "character",
@@ -175,7 +180,7 @@ export function CanvasApp(props: CanvasAppProps) {
         }
       }
     })();
-  }, [loadingState, branchId, orgId]);
+  }, [loadingState, branchId, orgId, editor]);
 
   // ── Context menu state (right-click "Add entity") ─────────────────────────────
 
