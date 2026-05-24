@@ -16,18 +16,22 @@ import {
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
+  /** Tailors the copy to why the gate fired. Defaults to the project-limit reason. */
+  reason?: "project" | "ai";
 }
 
-export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
+export function UpgradeModal({ open, onClose, reason = "project" }: UpgradeModalProps) {
   const t = useTranslations("Upgrade");
   const tCommon = useTranslations("Common");
+
+  const descriptionKey = reason === "ai" ? "aiDescription" : "description";
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogDescription>{t(descriptionKey)}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

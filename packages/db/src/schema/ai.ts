@@ -1,12 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { organizations } from "./orgs";
 import { projects } from "./projects";
 
 // Append-only observability + billing log for every model call. One row per
-// run; never updated after insert (hence no updated_at). orgId/projectId are
-// nullable so system-level runs (e.g. the /api/ai/ping health check) can be
-// logged without a project context, and set null on delete to preserve history.
+// run; orgId/projectId are nullable so system-level runs (e.g. the
+// /api/ai/ping health check) can be logged without a project context, and set
+// null on delete to preserve history.
 export const aiRuns = pgTable("ai_runs", {
   id: text("id")
     .primaryKey()
@@ -22,6 +22,12 @@ export const aiRuns = pgTable("ai_runs", {
   latencyMs: integer("latency_ms").notNull(),
   status: text("status", { enum: ["success", "error"] }).notNull(),
   errorMessage: text("error_message"),
+  // On-demand generations (Phase 7) always log a row for billing/observability,
+  // but the user may discard the result. `accepted` lets billing distinguish a
+  // generation the user kept from one they threw away. Flipped to true by the
+  // Accept server action; null for run types where acceptance is meaningless
+  // (ping, wizard, etc.).
+  accepted: boolean("accepted"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

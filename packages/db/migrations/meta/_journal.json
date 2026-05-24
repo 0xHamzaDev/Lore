@@ -50,6 +50,13 @@
       "when": 1779587246534,
       "tag": "0006_panoramic_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779592883672,
+      "tag": "0007_bent_vengeance",
+      "breakpoints": true
     }
   ]
 }

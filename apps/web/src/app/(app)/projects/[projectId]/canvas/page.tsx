@@ -1,4 +1,5 @@
 import { requireAuth } from "@lore/auth/guard";
+import { requireSubscription } from "@lore/auth/subscription";
 import { db, projects, members, branches, eq, and, isNull, asc } from "@lore/db";
 import { notFound } from "next/navigation";
 import { CanvasProvider } from "./_components/canvas-provider";
@@ -49,6 +50,11 @@ export default async function CanvasPage({ params, searchParams }: CanvasPagePro
   const currentBranch = branchRows.find((b) => b.id === requestedBranchId) ?? branchRows[0];
   const roomId = `${project[0].id}:${currentBranch.id}`;
 
+  // Resolve the plan server-side so free users hit the upgrade modal on the wand
+  // without ever firing an AI request.
+  const subscription = await requireSubscription(project[0].orgId);
+  const isPro = subscription.allowed;
+
   return (
     <div className="flex h-full w-full flex-col">
       <h1 className="sr-only">{project[0].name}</h1>
@@ -73,6 +79,7 @@ export default async function CanvasPage({ params, searchParams }: CanvasPagePro
             orgId={project[0].orgId}
             userId={session.user.id}
             userName={session.user.name ?? "Anonymous"}
+            isPro={isPro}
           />
         </CanvasProvider>
       </div>

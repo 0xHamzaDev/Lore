@@ -12,6 +12,7 @@ import {
   members,
   projects,
   branches,
+  aiRuns,
   and,
   asc,
   eq,
@@ -179,6 +180,66 @@ export async function updateEntity(data: {
     return { success: true, data: updated as AnyEntity };
   } catch {
     return { success: false, error: "Failed to update entity." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// acceptFieldSuggestion (Phase 7 on-demand AI)
+// Writes an accepted AI suggestion into the entity field and flags the
+// originating ai_runs row as accepted. The generation itself was already
+// logged by the agents server (single sink); this only patches + flips the
+// `accepted` bit so billing can tell kept generations from discarded ones.
+// ---------------------------------------------------------------------------
+
+// Fields that the wand can write to, per entity type. Mirrors the multiline
+// fields in entity-panel's FIELD_CONFIG — guards against a tampered client
+// patching name/title or some other column via this path.
+const GENERATABLE_FIELDS: Record<EntityType, readonly string[]> = {
+  character: ["bio", "backstory", "voiceSample"],
+  location: ["description", "history"],
+  faction: ["description", "goals"],
+  scene: ["summary"],
+  timeline_event: ["description"],
+};
+
+export async function acceptFieldSuggestion(data: {
+  type: EntityType;
+  entityId: string;
+  orgId: string;
+  fieldKey: string;
+  value: string;
+  aiRunId?: string | null;
+}): Promise<ActionResult<AnyEntity>> {
+  const authResult = await requireOrgRole(data.orgId, "editor");
+  if (!authResult.success) return authResult;
+
+  if (!GENERATABLE_FIELDS[data.type].includes(data.fieldKey)) {
+    return { success: false, error: "Field is not AI-generatable." };
+  }
+
+  try {
+    const table = tableFor(data.type);
+    const [updated] = await db
+      .update(table)
+      .set({ [data.fieldKey]: data.value, updatedAt: new Date() })
+      .where(and(eq(table.id, data.entityId), eq(table.orgId, data.orgId)))
+      .returning();
+
+    if (!updated) return { success: false, error: "Entity not found." };
+
+    // Flag the run as accepted. Scoped to orgId so one org can't flip another's
+    // row. Best-effort: if logging failed upstream aiRunId is null — the field
+    // write still succeeds.
+    if (data.aiRunId) {
+      await db
+        .update(aiRuns)
+        .set({ accepted: true })
+        .where(and(eq(aiRuns.id, data.aiRunId), eq(aiRuns.orgId, data.orgId)));
+    }
+
+    return { success: true, data: updated as AnyEntity };
+  } catch {
+    return { success: false, error: "Failed to save suggestion." };
   }
 }
 

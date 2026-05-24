@@ -27,8 +27,8 @@ app.use("/agent/*", async (c, next) => {
   await next();
 });
 
-// Forward an agent request to the agents server, attaching the internal token.
-// The request body becomes the agent `payload`.
+// Forward a buffered agent request to the agents server, attaching the internal
+// token. The request body becomes the agent `payload`.
 async function forward(c: AppContext, type: AgentType): Promise<Response> {
   const payload = await c.req.json().catch(() => ({}));
   const upstream = await fetch(`${c.env.AGENTS_SERVER_URL}/internal/agent-run`, {
@@ -48,9 +48,39 @@ async function forward(c: AppContext, type: AgentType): Promise<Response> {
   });
 }
 
+// Forward a streaming agent request. Pipes the agents server's SSE body straight
+// through without buffering so model deltas reach the browser as they arrive.
+async function forwardStream(c: AppContext, type: AgentType): Promise<Response> {
+  const payload = await c.req.json().catch(() => ({}));
+  const upstream = await fetch(`${c.env.AGENTS_SERVER_URL}/internal/agent-stream`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-internal-token": c.env.INTERNAL_AGENT_TOKEN,
+    },
+    body: JSON.stringify({ type, payload }),
+  });
+  // A non-200 here is a pre-stream JSON error (bad type, auth) — pass it through
+  // verbatim. Otherwise stream the SSE body.
+  if (!upstream.ok) {
+    const text = await upstream.text();
+    return new Response(text, {
+      status: upstream.status,
+      headers: { "content-type": "application/json" },
+    });
+  }
+  return new Response(upstream.body, {
+    status: 200,
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
+  });
+}
+
 app.post("/agent/ping", (c) => forward(c, "ping"));
 app.post("/agent/wizard", (c) => forward(c, "wizard"));
 app.post("/agent/command", (c) => forward(c, "command"));
-app.post("/agent/generate-field", (c) => forward(c, "generate-field"));
+app.post("/agent/generate-field", (c) => forwardStream(c, "generate-field"));
 
 export default app;
