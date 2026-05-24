@@ -269,6 +269,23 @@
     "menu": "More options",
     "open": "Open"
   },
+  "Wizard": {
+    "next": "Next",
+    "skip": "Skip",
+    "generate": "Generate with AI",
+    "briefLabel": "Story brief",
+    "briefDescription": "Describe your story in a sentence — the AI will populate your canvas.",
+    "briefPlaceholder": "A detective in 1920s Cairo hunts a thief who only steals memories.",
+    "briefRequired": "Enter a brief, or choose Skip for a blank canvas.",
+    "generatingTitle": "Generating your world…",
+    "generatingCount": "{count} entities created",
+    "errorTitle": "Generation failed",
+    "errorEmpty": "Nothing was created. Try again or return to the dashboard.",
+    "errorPartial": "Created {count} before an error. You can keep what was made.",
+    "tryAgain": "Try again",
+    "keepAndClose": "Keep & close",
+    "backToDashboard": "Back to dashboard"
+  },
   "Upgrade": {
     "title": "Upgrade to Pro",
     "description": "The free plan is limited to one project. Upgrade for unlimited projects.",
