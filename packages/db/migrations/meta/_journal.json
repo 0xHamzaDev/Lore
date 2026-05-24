@@ -43,6 +43,13 @@
       "when": 1779575736441,
       "tag": "0005_late_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779587246534,
+      "tag": "0006_panoramic_azazel",
+      "breakpoints": true
     }
   ]
 }

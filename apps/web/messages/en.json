@@ -43,7 +43,8 @@
     "description": "Manage your account and workspace.",
     "tabs": {
       "profile": "Profile",
-      "org": "Organization"
+      "org": "Organization",
+      "billing": "Billing"
     },
     "profile": {
       "title": "Profile",
@@ -272,6 +273,66 @@
     "title": "Upgrade to Pro",
     "description": "The free plan is limited to one project. Upgrade for unlimited projects.",
     "cta": "Upgrade plan"
+  },
+  "Billing": {
+    "planSection": {
+      "title": "Plan",
+      "description": "Your current subscription and renewal details."
+    },
+    "plans": {
+      "free": "Free",
+      "pro": "Pro"
+    },
+    "status": {
+      "free": "No subscription",
+      "active": "Active",
+      "cancelled": "Cancelling",
+      "past_due": "Past due"
+    },
+    "renewal": {
+      "renewsOn": "Renews on {date}",
+      "accessUntil": "Access continues until {date}",
+      "noSubscription": "Upgrade to unlock unlimited projects and AI features."
+    },
+    "ctas": {
+      "upgrade": "Upgrade to Pro",
+      "upgrading": "Starting checkout…",
+      "reactivate": "Reactivate subscription",
+      "cancel": "Cancel subscription",
+      "cancelling": "Cancelling…"
+    },
+    "cancelDialog": {
+      "title": "Cancel subscription?",
+      "description": "You'll keep Pro access until the end of the current billing period.",
+      "confirm": "Cancel subscription",
+      "dismiss": "Keep subscription"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "description": "Your billing history.",
+      "empty": "No invoices yet."
+    },
+    "flash": {
+      "upgraded": "You're now on Pro. Welcome aboard.",
+      "forbidden": "You don't have permission to manage billing for this organization."
+    },
+    "toasts": {
+      "cancelled": "Subscription cancelled. You'll keep access until the period ends."
+    },
+    "errors": {
+      "startCheckout": "Couldn't start checkout. Please try again.",
+      "cancel": "Couldn't cancel the subscription. Please try again."
+    },
+    "checkoutStub": {
+      "title": "Confirm payment",
+      "description": "This is a development stub. In production, Moyasar handles checkout.",
+      "planLabel": "Plan",
+      "planName": "Pro (monthly)",
+      "priceLabel": "Total",
+      "price": "29 SAR",
+      "devNotice": "Dev mode: no real payment is processed.",
+      "payCta": "Pay (Test)"
+    }
   },
   "Canvas": {
     "entityTypes": {
