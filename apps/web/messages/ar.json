@@ -413,5 +413,28 @@
     "date": "التاريخ",
     "significance": "الأهمية",
     "title": "العنوان"
+  },
+  "CommandBar": {
+    "placeholder": "اسأل أو صف تغييراً…",
+    "submit": "تنفيذ",
+    "stop": "إيقاف",
+    "loading": "جارٍ التنفيذ…",
+    "result": {
+      "createDone": "تم إنشاء {count, plural, one {عنصر واحد} other {# عناصر}}.",
+      "editDone": "تم تحديث {patched, plural, one {حقل واحد} other {# حقول}}.",
+      "deleteDone": "تم حذف {deleted}. {failed, plural, =0 {} other {(# فشل)}}",
+      "agentQueued": "تم وضعه في قائمة الانتظار — الوكلاء يعملون في المرحلة 10.",
+      "unknown": "لست متأكداً من كيفية المساعدة في ذلك.",
+      "queryError": "فشل الرد. حاول مرة أخرى."
+    },
+    "errors": {
+      "unreachable": "تعذّر الوصول إلى الذكاء الاصطناعي الآن. حاول مرة أخرى.",
+      "generic": "حدث خطأ ما."
+    },
+    "confirm": {
+      "title": "تأكيد الحذف",
+      "cancel": "إلغاء",
+      "confirm": "حذف"
+    }
   }
 }
