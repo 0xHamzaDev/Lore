@@ -15,6 +15,7 @@ import { NewProjectButton } from "./new-project-button";
 
 interface ProjectGridProps {
   orgId: string;
+  isPro: boolean;
 }
 
 function ProjectGridSkeleton() {
@@ -27,7 +28,7 @@ function ProjectGridSkeleton() {
   );
 }
 
-export function ProjectGrid({ orgId }: ProjectGridProps) {
+export function ProjectGrid({ orgId, isPro }: ProjectGridProps) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const [renameTarget, setRenameTarget] = useState<Project | null>(null);
@@ -72,7 +73,7 @@ export function ProjectGrid({ orgId }: ProjectGridProps) {
         icon={FolderPlus}
         title={t("Dashboard.emptyTitle")}
         description={t("Dashboard.emptyDescription")}
-        action={<NewProjectButton orgId={orgId} />}
+        action={<NewProjectButton orgId={orgId} isPro={isPro} />}
       />
     );
   }
