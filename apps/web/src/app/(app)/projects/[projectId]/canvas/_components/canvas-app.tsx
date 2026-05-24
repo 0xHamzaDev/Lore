@@ -4,7 +4,7 @@ import "tldraw/tldraw.css";
 
 import { createId } from "@paralleldrive/cuid2";
 import type { EntityType } from "@lore/db";
-import { Clock, Film, MapPin, Shield, User } from "lucide-react";
+import { Clock, Film, MapPin, Shield, Sparkles, User, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
@@ -27,6 +27,7 @@ export interface CanvasAppProps {
   orgId: string;
   userId: string;
   userName: string;
+  isPro: boolean;
 }
 
 // ─── Entity toolbar config ────────────────────────────────────────────────────
@@ -43,6 +44,27 @@ const ENTITY_TYPE_KEYS = [
 // custom "Add entity" menu wired below.
 const TLDRAW_COMPONENTS: TLComponents = { ContextMenu: null };
 
+// Text-rich fields the "AI Actions" submenu can generate, per entity type.
+// Mirrors the multiline fields in entity-panel's FIELD_CONFIG and the server's
+// GENERATABLE_FIELDS guard. tKey indexes the "Entity" message namespace.
+const AI_ACTION_FIELDS: Record<EntityType, { key: string; tKey: string }[]> = {
+  character: [
+    { key: "bio", tKey: "bio" },
+    { key: "backstory", tKey: "backstory" },
+    { key: "voiceSample", tKey: "voiceSample" },
+  ],
+  location: [
+    { key: "description", tKey: "description" },
+    { key: "history", tKey: "history" },
+  ],
+  faction: [
+    { key: "description", tKey: "description" },
+    { key: "goals", tKey: "goals" },
+  ],
+  scene: [{ key: "summary", tKey: "summary" }],
+  timeline_event: [{ key: "description", tKey: "description" }],
+};
+
 // ─── Helper to derive displayName from an AnyEntity-like record ───────────────
 
 function getEntityDisplayName(entity: Record<string, unknown>, type: EntityType): string {
@@ -55,10 +77,11 @@ function getEntityDisplayName(entity: Record<string, unknown>, type: EntityType)
 // ─── CanvasApp ────────────────────────────────────────────────────────────────
 
 export function CanvasApp(props: CanvasAppProps) {
-  const { projectId, branchId, orgId } = props;
+  const { projectId, branchId, orgId, isPro } = props;
   // TODO Task 9: pass props.userId and props.userName to EntityPanel for Liveblocks presence
 
   const t = useTranslations("Canvas");
+  const tEntity = useTranslations("Entity");
   const tCommon = useTranslations("Common");
 
   const { store, loadingState } = useStorageStore();
@@ -191,6 +214,24 @@ export function CanvasApp(props: CanvasAppProps) {
     pageY: number;
   } | null>(null);
 
+  // ── AI Actions menu state (right-click on an entity shape) ─────────────────────
+
+  const [aiMenu, setAiMenu] = useState<{
+    clientX: number;
+    clientY: number;
+    shapeId: TLShapeId;
+    entityId: string;
+    entityType: EntityType;
+  } | null>(null);
+
+  // A field generation requested from the AI Actions menu, handed to the panel
+  // to auto-start once it has loaded the entity. Guarded by entityId so a stale
+  // request never fires against the wrong entity.
+  const [pendingAiField, setPendingAiField] = useState<{
+    entityId: string;
+    field: string;
+  } | null>(null);
+
   // ── Create entity ─────────────────────────────────────────────────────────────
 
   const handleCreateEntity = useCallback(
@@ -274,17 +315,51 @@ export function CanvasApp(props: CanvasAppProps) {
 
     const page = ed.screenToPage({ x: e.clientX, y: e.clientY });
     const hit = ed.getShapeAtPoint(page);
-    if (hit) return; // let tldraw handle right-click on shapes
 
+    if (hit) {
+      // Right-click on one of our entity shapes → AI Actions menu. Other shape
+      // types fall through to tldraw's default handling.
+      if (hit.type === ENTITY_SHAPE_TYPE) {
+        const shape = hit as EntityShape;
+        e.preventDefault();
+        e.stopPropagation();
+        setContextMenu(null);
+        setAiMenu({
+          clientX: e.clientX,
+          clientY: e.clientY,
+          shapeId: shape.id,
+          entityId: shape.props.entityId,
+          entityType: shape.props.entityType,
+        });
+      }
+      return;
+    }
+
+    // Empty canvas → "Add entity" menu.
     e.preventDefault();
     e.stopPropagation();
+    setAiMenu(null);
     setContextMenu({ clientX: e.clientX, clientY: e.clientY, pageX: page.x, pageY: page.y });
   }, []);
 
-  // Dismiss the context menu on outside click or Escape.
+  // Trigger a field generation from the AI Actions menu: select the shape so
+  // the panel opens for this entity, then hand the field to the panel to run.
+  const handleAiAction = useCallback((menu: NonNullable<typeof aiMenu>, fieldKey: string) => {
+    const ed = editorRef.current;
+    if (ed) ed.select(menu.shapeId);
+    setSelectedEntityId(menu.entityId);
+    setSelectedEntityType(menu.entityType);
+    setPendingAiField({ entityId: menu.entityId, field: fieldKey });
+    setAiMenu(null);
+  }, []);
+
+  // Dismiss either menu on outside click or Escape.
   useEffect(() => {
-    if (!contextMenu) return;
-    const close = () => setContextMenu(null);
+    if (!contextMenu && !aiMenu) return;
+    const close = () => {
+      setContextMenu(null);
+      setAiMenu(null);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
@@ -294,7 +369,7 @@ export function CanvasApp(props: CanvasAppProps) {
       window.removeEventListener("mousedown", close);
       window.removeEventListener("keydown", onKey);
     };
-  }, [contextMenu]);
+  }, [contextMenu, aiMenu]);
 
   // ── Loading / error states ────────────────────────────────────────────────────
 
@@ -393,13 +468,52 @@ export function CanvasApp(props: CanvasAppProps) {
         </div>
       )}
 
-      {/* Entity panel — Task 9 */}
+      {/* Right-click "AI Actions" menu — only on entity shapes. */}
+      {aiMenu && (
+        <div
+          role="menu"
+          aria-label={t("ai.aiActions")}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{ top: aiMenu.clientY, left: aiMenu.clientX }}
+          className="absolute z-[200] min-w-[200px] rounded-lg border border-[#d9d9dd] bg-white py-1 shadow-lg"
+        >
+          <div className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#003c33]">
+            <Sparkles size={12} />
+            {t("ai.aiActions")}
+          </div>
+          {AI_ACTION_FIELDS[aiMenu.entityType].map(({ key, tKey }) => {
+            const fieldLabel = tEntity(tKey as Parameters<typeof tEntity>[0]);
+            return (
+              <button
+                key={key}
+                role="menuitem"
+                type="button"
+                onClick={() => handleAiAction(aiMenu, key)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#17171c] hover:bg-[#f5f5f7]"
+              >
+                <Wand2 size={14} className="text-[#003c33]" />
+                <span>{t("ai.generateField", { field: fieldLabel })}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Entity panel */}
       {selectedEntityId && selectedEntityType && (
         <EntityPanel
           entityId={selectedEntityId}
           entityType={selectedEntityType}
           orgId={orgId}
+          projectId={projectId}
           branchId={branchId}
+          isPro={isPro}
+          initialGenerateField={
+            pendingAiField && pendingAiField.entityId === selectedEntityId
+              ? pendingAiField.field
+              : null
+          }
+          onInitialGenerateConsumed={() => setPendingAiField(null)}
           onDelete={() => {
             // Remove shape from canvas
             if (editorRef.current) {

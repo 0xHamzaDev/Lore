@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@lore/ui";
 import { QK } from "@lore/utils";
 import { CreateProjectDialog } from "./create-project-dialog";
-import { UpgradeModal } from "./upgrade-modal";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 interface NewProjectButtonProps {
   orgId: string;

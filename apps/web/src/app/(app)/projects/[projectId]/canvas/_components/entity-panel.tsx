@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Wand2 } from "lucide-react";
 import { Button, Input, Label, Textarea } from "@lore/ui";
 
 import type { EntityType } from "@lore/db";
-import { listEntities, updateEntity, deleteEntity } from "../_actions";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { listEntities, updateEntity, deleteEntity, acceptFieldSuggestion } from "../_actions";
+import { useFieldGeneration } from "../_hooks/use-field-generation";
+import { FieldSuggestion } from "./field-suggestion";
 
 // ─── Field config ─────────────────────────────────────────────────────────────
 
@@ -68,9 +71,14 @@ interface EntityPanelProps {
   entityId: string;
   entityType: EntityType;
   orgId: string;
+  projectId: string;
   branchId: string;
+  isPro: boolean;
   onDelete: () => void;
   onNameChange: (name: string) => void;
+  /** When set (from the canvas "AI Actions" menu), auto-starts generation for this field once the entity loads. */
+  initialGenerateField?: string | null;
+  onInitialGenerateConsumed?: () => void;
 }
 
 // ─── EntityPanel ──────────────────────────────────────────────────────────────
@@ -79,13 +87,21 @@ export function EntityPanel({
   entityId,
   entityType,
   orgId,
+  projectId,
   branchId,
+  isPro,
   onDelete,
   onNameChange,
+  initialGenerateField,
+  onInitialGenerateConsumed,
 }: EntityPanelProps) {
   const t = useTranslations("Canvas");
   const tEntity = useTranslations("Entity");
   const tCommon = useTranslations("Common");
+  const locale = useLocale();
+
+  const gen = useFieldGeneration();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Local field values keyed by field key
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -184,6 +200,78 @@ export function EntityPanel({
     onDelete();
   }, [t, tCommon, entityType, entityId, orgId, onDelete]);
 
+  // ── AI generation handlers ──────────────────────────────────────────────────
+
+  // Free users never reach the network: the wand opens the upgrade modal here,
+  // before any fetch. (The route handler also 402s as defense in depth.)
+  const startGeneration = useCallback(
+    (fieldKey: string, fieldLabel: string) => {
+      if (!isPro) {
+        setUpgradeOpen(true);
+        return;
+      }
+      gen.start({
+        projectId,
+        entityType,
+        fieldKey,
+        fieldLabel,
+        context: fieldValues,
+        locale,
+      });
+    },
+    [isPro, gen, projectId, entityType, fieldValues, locale],
+  );
+
+  const handleAccept = useCallback(
+    async (fieldKey: string) => {
+      const value = gen.suggestion;
+      const result = await acceptFieldSuggestion({
+        type: entityType,
+        entityId,
+        orgId,
+        fieldKey,
+        value,
+        aiRunId: gen.meta?.aiRunId ?? null,
+      });
+      if (!result.success) {
+        toast.error(tCommon("error"));
+        return;
+      }
+      // acceptFieldSuggestion already persisted the field, so update local state
+      // directly without re-triggering the debounced autosave.
+      setFieldValues((prev) => ({ ...prev, [fieldKey]: value }));
+      gen.reset();
+    },
+    [gen, entityType, entityId, orgId, tCommon],
+  );
+
+  // A 402 from the route handler (subscription lapsed mid-session) routes to the
+  // upgrade modal instead of the inline error.
+  useEffect(() => {
+    if (gen.upgradeRequired) {
+      setUpgradeOpen(true);
+      gen.reset();
+    }
+  }, [gen.upgradeRequired, gen]);
+
+  // Auto-start a generation requested from the canvas "AI Actions" menu, once
+  // the entity's fields have loaded (so the prompt gets full context).
+  useEffect(() => {
+    if (!initialGenerateField || isLoading) return;
+    const field = (FIELD_CONFIG[entityType] ?? []).find((f) => f.key === initialGenerateField);
+    if (field) {
+      startGeneration(field.key, tEntity(field.tKey as Parameters<typeof tEntity>[0]));
+    }
+    onInitialGenerateConsumed?.();
+  }, [
+    initialGenerateField,
+    isLoading,
+    entityType,
+    startGeneration,
+    tEntity,
+    onInitialGenerateConsumed,
+  ]);
+
   // Cleanup timers on unmount
   useEffect(() => {
     const timers = debounceTimers.current;
@@ -232,11 +320,30 @@ export function EntityPanel({
               const label = tEntity(field.tKey as Parameters<typeof tEntity>[0]);
               const fieldId = `entity-field-${field.key}`;
 
+              const isGenerating = gen.fieldKey === field.key && gen.status !== "idle";
+
               return (
                 <div key={field.key} className="flex flex-col gap-1.5">
-                  <Label htmlFor={fieldId} className="text-xs font-medium text-[#5d5d6e]">
-                    {label}
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={fieldId} className="text-xs font-medium text-[#5d5d6e]">
+                      {label}
+                    </Label>
+                    {/* Wand only on text-rich (multiline) fields — Phase 7. */}
+                    {field.multiline && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        title={t("ai.generate")}
+                        aria-label={t("ai.generate")}
+                        disabled={isGenerating}
+                        onClick={() => startGeneration(field.key, label)}
+                        className="h-6 w-6 text-[#003c33] hover:bg-[#003c33]/10 disabled:opacity-40"
+                      >
+                        <Wand2 size={13} />
+                      </Button>
+                    )}
+                  </div>
                   {field.multiline ? (
                     <Textarea
                       id={fieldId}
@@ -257,12 +364,24 @@ export function EntityPanel({
                       className="text-sm"
                     />
                   )}
+                  {isGenerating && (
+                    <FieldSuggestion
+                      current={value}
+                      status={gen.status}
+                      suggestion={gen.suggestion}
+                      onAccept={() => void handleAccept(field.key)}
+                      onRegenerate={() => startGeneration(field.key, label)}
+                      onDiscard={() => gen.reset()}
+                    />
+                  )}
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="ai" />
     </div>
   );
 }

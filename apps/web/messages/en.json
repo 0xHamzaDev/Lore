@@ -272,6 +272,7 @@
   "Upgrade": {
     "title": "Upgrade to Pro",
     "description": "The free plan is limited to one project. Upgrade for unlimited projects.",
+    "aiDescription": "AI generation is a Pro feature. Upgrade to use the wand and AI actions.",
     "cta": "Upgrade plan"
   },
   "Billing": {
@@ -347,6 +348,18 @@
     "deleteConfirm": "Are you sure you want to delete this entity? This cannot be undone.",
     "saving": "Saving…",
     "saved": "Saved",
+    "ai": {
+      "generate": "Generate with AI",
+      "generateField": "Generate {field}",
+      "aiActions": "AI Actions",
+      "current": "Current",
+      "suggestion": "Suggestion",
+      "accept": "Accept",
+      "regenerate": "Regenerate",
+      "discard": "Discard",
+      "tryAgain": "Try again",
+      "error": "Couldn't generate a suggestion. Please try again."
+    },
     "branch": {
       "label": "Branches",
       "fork": "Fork branch",
