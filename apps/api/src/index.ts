@@ -79,7 +79,7 @@ async function forwardStream(c: AppContext, type: AgentType): Promise<Response> 
 }
 
 app.post("/agent/ping", (c) => forward(c, "ping"));
-app.post("/agent/wizard", (c) => forward(c, "wizard"));
+app.post("/agent/wizard", (c) => forwardStream(c, "wizard"));
 app.post("/agent/command", (c) => forward(c, "command"));
 app.post("/agent/generate-field", (c) => forwardStream(c, "generate-field"));
 
