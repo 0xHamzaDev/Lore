@@ -8,6 +8,7 @@ import { cn } from "@lore/ui";
 const TABS = [
   { labelKey: "Settings.tabs.profile" as const, href: ROUTES.settings.profile },
   { labelKey: "Settings.tabs.org" as const, href: ROUTES.settings.org },
+  { labelKey: "Settings.tabs.billing" as const, href: ROUTES.settings.billing },
 ];
 
 export function SettingsTabs() {

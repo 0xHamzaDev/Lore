@@ -11,6 +11,7 @@ export const env = createEnv({
     LIVEBLOCKS_SECRET_KEY: z.string(),
     API_GATEWAY_URL: z.string().url(),
     API_GATEWAY_SECRET: z.string().min(16),
+    MOYASAR_WEBHOOK_SECRET: z.string().min(16).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
@@ -25,6 +26,7 @@ export const env = createEnv({
     LIVEBLOCKS_SECRET_KEY: process.env["LIVEBLOCKS_SECRET_KEY"],
     API_GATEWAY_URL: process.env["API_GATEWAY_URL"],
     API_GATEWAY_SECRET: process.env["API_GATEWAY_SECRET"],
+    MOYASAR_WEBHOOK_SECRET: process.env["MOYASAR_WEBHOOK_SECRET"],
   },
   skipValidation: !!process.env["SKIP_ENV_VALIDATION"],
 });
