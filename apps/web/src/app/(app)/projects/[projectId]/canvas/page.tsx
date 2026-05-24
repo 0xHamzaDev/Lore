@@ -8,12 +8,12 @@ import { BranchSwitcher } from "./_components/branch-switcher";
 
 interface CanvasPageProps {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ branchId?: string }>;
+  searchParams: Promise<{ branchId?: string; wizard?: string }>;
 }
 
 export default async function CanvasPage({ params, searchParams }: CanvasPageProps) {
   const { projectId } = await params;
-  const { branchId: requestedBranchId } = await searchParams;
+  const { branchId: requestedBranchId, wizard } = await searchParams;
   const session = await requireAuth();
 
   const project = await db
@@ -80,6 +80,7 @@ export default async function CanvasPage({ params, searchParams }: CanvasPagePro
             userId={session.user.id}
             userName={session.user.name ?? "Anonymous"}
             isPro={isPro}
+            wizardRequested={wizard === "1"}
           />
         </CanvasProvider>
       </div>

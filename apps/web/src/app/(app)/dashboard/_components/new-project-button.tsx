@@ -11,11 +11,17 @@ import { UpgradeModal } from "@/components/upgrade-modal";
 
 interface NewProjectButtonProps {
   orgId: string;
+  isPro: boolean;
   variant?: "default" | "outline";
   label?: string;
 }
 
-export function NewProjectButton({ orgId, variant = "default", label }: NewProjectButtonProps) {
+export function NewProjectButton({
+  orgId,
+  isPro,
+  variant = "default",
+  label,
+}: NewProjectButtonProps) {
   const t = useTranslations("Dashboard");
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -30,6 +36,7 @@ export function NewProjectButton({ orgId, variant = "default", label }: NewProje
 
       <CreateProjectDialog
         orgId={orgId}
+        isPro={isPro}
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSuccess={() => {

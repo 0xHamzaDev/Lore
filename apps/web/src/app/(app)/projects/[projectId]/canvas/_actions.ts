@@ -29,6 +29,7 @@ import type {
   Branch,
 } from "@lore/db";
 import type { ActionResult } from "@lore/utils";
+import { wizardEntitySchema, type WizardEntity } from "@lore/validators";
 
 // ---------------------------------------------------------------------------
 // Shared: project access guard
@@ -146,6 +147,72 @@ export async function createEntity(data: {
     }
 
     return { success: true, data: inserted };
+  } catch {
+    return { success: false, error: "Failed to create entity." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// createWizardEntity (Phase 8 AI wizard)
+// Persists one fully-populated entity streamed by the Writer Agent. Re-validates
+// the payload with the shared schema (defense in depth — the browser is the
+// caller and the agents server already validated, but a tampered client could
+// hit this action directly). Inserts every type-specific field in one row.
+// ---------------------------------------------------------------------------
+
+export async function createWizardEntity(data: {
+  orgId: string;
+  projectId: string;
+  branchId: string;
+  entity: WizardEntity;
+}): Promise<ActionResult<AnyEntity>> {
+  const authResult = await requireOrgRole(data.orgId, "editor");
+  if (!authResult.success) return authResult;
+
+  const parsed = wizardEntitySchema.safeParse(data.entity);
+  if (!parsed.success) return { success: false, error: "Invalid entity." };
+
+  const { orgId, projectId, branchId } = data;
+  const base = { orgId, projectId, branchId };
+
+  try {
+    switch (parsed.data.entityType) {
+      case "character": {
+        const [row] = await db
+          .insert(characters)
+          .values({ ...base, ...parsed.data.data })
+          .returning();
+        return { success: true, data: row as Character };
+      }
+      case "location": {
+        const [row] = await db
+          .insert(locations)
+          .values({ ...base, ...parsed.data.data })
+          .returning();
+        return { success: true, data: row as Location };
+      }
+      case "faction": {
+        const [row] = await db
+          .insert(factions)
+          .values({ ...base, ...parsed.data.data })
+          .returning();
+        return { success: true, data: row as Faction };
+      }
+      case "scene": {
+        const [row] = await db
+          .insert(scenes)
+          .values({ ...base, ...parsed.data.data })
+          .returning();
+        return { success: true, data: row as Scene };
+      }
+      case "timeline_event": {
+        const [row] = await db
+          .insert(timelineEvents)
+          .values({ ...base, ...parsed.data.data })
+          .returning();
+        return { success: true, data: row as TimelineEvent };
+      }
+    }
   } catch {
     return { success: false, error: "Failed to create entity." };
   }
