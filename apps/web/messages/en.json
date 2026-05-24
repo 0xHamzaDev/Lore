@@ -413,5 +413,28 @@
     "date": "Date",
     "significance": "Significance",
     "title": "Title"
+  },
+  "CommandBar": {
+    "placeholder": "Ask anything or describe a change…",
+    "submit": "Run",
+    "stop": "Stop",
+    "loading": "Working…",
+    "result": {
+      "createDone": "Created {count, plural, one {# entity} other {# entities}}.",
+      "editDone": "Updated {patched, plural, one {# field} other {# fields}}.",
+      "deleteDone": "Deleted {deleted}. {failed, plural, =0 {} other {(# failed)}}",
+      "agentQueued": "Queued — background agents run in Phase 10.",
+      "unknown": "I'm not sure how to help with that.",
+      "queryError": "Answer failed. Try again."
+    },
+    "errors": {
+      "unreachable": "Couldn't reach the AI right now. Try again.",
+      "generic": "Something went wrong."
+    },
+    "confirm": {
+      "title": "Confirm deletion",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    }
   }
 }

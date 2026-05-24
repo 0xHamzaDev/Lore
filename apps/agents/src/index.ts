@@ -4,6 +4,7 @@ import { wizardEntitySchema } from "@lore/validators";
 import { runAgent, type AgentRunInput } from "./run-agent";
 import { runGenerateFieldStream, type GenerateFieldPayload } from "./generate-field";
 import { runWizardStream, type WizardPayload } from "./wizard";
+import { runQueryStream, type QueryPayload } from "./query";
 import { logAiRun } from "./logger";
 
 const PORT = Number(process.env["PORT"] ?? 4000);
@@ -153,6 +154,65 @@ async function handleWizardStream(payload: WizardPayload, res: ServerResponse): 
   res.end();
 }
 
+// Query streaming: one streamModelTextSSE call answering a question over a
+// compact entity list. Logs a single ai_runs row (run_type='query') at stream
+// end. Mirrors handleAgentStream (generate-field) — same SSE wire format:
+// `delta` frames + `done` (or `error`) terminal frame.
+async function handleQueryStream(payload: QueryPayload, res: ServerResponse): Promise<void> {
+  const orgId = payload.orgId ?? null;
+  const projectId = payload.projectId ?? null;
+  const start = Date.now();
+
+  const { stream, done, model } = runQueryStream(payload);
+
+  res.writeHead(200, {
+    "content-type": "text/event-stream",
+    "cache-control": "no-cache, no-transform",
+    connection: "keep-alive",
+  });
+
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  try {
+    for (;;) {
+      const { done: streamDone, value } = await reader.read();
+      if (streamDone) break;
+      const text = decoder.decode(value);
+      if (text) res.write(sseFrame("delta", { text }));
+    }
+  } catch {
+    // The done promise below will also reject — handle it there.
+  }
+
+  try {
+    const meta = await done;
+    await logAiRun({
+      orgId,
+      projectId,
+      runType: "query",
+      model,
+      inputTokens: meta.usage.inputTokens,
+      outputTokens: meta.usage.outputTokens,
+      latencyMs: meta.latencyMs,
+      status: "success",
+    });
+    res.write(sseFrame("done", { usage: meta.usage, latencyMs: meta.latencyMs, model }));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await logAiRun({
+      orgId,
+      projectId,
+      runType: "query",
+      model,
+      latencyMs: Date.now() - start,
+      status: "error",
+      errorMessage: message,
+    });
+    res.write(sseFrame("error", { message }));
+  }
+  res.end();
+}
+
 function readJsonBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let raw = "";
@@ -232,6 +292,10 @@ const server = createServer((req, res) => {
       }
       if (body?.type === "wizard") {
         await handleWizardStream((body.payload ?? {}) as WizardPayload, res);
+        return;
+      }
+      if (body?.type === "query") {
+        await handleQueryStream((body.payload ?? {}) as QueryPayload, res);
         return;
       }
       sendJson(res, 400, { success: false, error: "unsupported stream type" });

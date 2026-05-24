@@ -10,7 +10,7 @@ type Bindings = {
 type AppContext = Context<{ Bindings: Bindings }>;
 
 // Mirrors the agents server's handler names.
-type AgentType = "ping" | "wizard" | "command" | "generate-field";
+type AgentType = "ping" | "wizard" | "command" | "query" | "generate-field";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -81,6 +81,7 @@ async function forwardStream(c: AppContext, type: AgentType): Promise<Response> 
 app.post("/agent/ping", (c) => forward(c, "ping"));
 app.post("/agent/wizard", (c) => forwardStream(c, "wizard"));
 app.post("/agent/command", (c) => forward(c, "command"));
+app.post("/agent/query", (c) => forwardStream(c, "query"));
 app.post("/agent/generate-field", (c) => forwardStream(c, "generate-field"));
 
 export default app;

@@ -6,7 +6,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { EntityType } from "@lore/db";
 import { Clock, Film, MapPin, Shield, Sparkles, User, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
 import type { Editor, TLComponents, TLShapeId } from "tldraw";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ import { useRouter } from "@/i18n/navigation";
 
 import { EntityPanel } from "./entity-panel";
 import { WizardOverlay } from "./wizard-overlay";
+import { CommandBar } from "./command-bar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +93,25 @@ export function CanvasApp(props: CanvasAppProps) {
   const t = useTranslations("Canvas");
   const tEntity = useTranslations("Entity");
   const tCommon = useTranslations("Common");
+  const locale = useLocale() as "ar" | "en";
+  const [commandBarOpen, setCommandBarOpen] = useState(false);
+
+  // Global Cmd/Ctrl+K opens the command bar. Suppressed while focus is inside
+  // an editable element so the entity-panel input flow isn't hijacked.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
+      if (!isCmdK) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const editable = tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable === true;
+      if (editable) return;
+      e.preventDefault();
+      setCommandBarOpen(true);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const { store, loadingState } = useStorageStore();
   const editorRef = useRef<Editor | null>(null);
@@ -671,6 +691,16 @@ export function CanvasApp(props: CanvasAppProps) {
           }}
         />
       )}
+
+      {/* AI Command Bar — Cmd/Ctrl+K. */}
+      <CommandBar
+        open={commandBarOpen}
+        onOpenChange={setCommandBarOpen}
+        orgId={orgId}
+        projectId={projectId}
+        branchId={branchId}
+        locale={locale}
+      />
     </div>
   );
 }
