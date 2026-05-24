@@ -11,13 +11,21 @@ import { Tldraw } from "tldraw";
 import type { Editor, TLComponents, TLShapeId } from "tldraw";
 import { toast } from "sonner";
 
+import { ROUTES } from "@lore/utils";
+import type { WizardEntity } from "@lore/validators";
 import { useStorageStore } from "../_hooks/use-storage-store";
-import { createEntity, listEntities } from "../_actions";
+import { createEntity, createWizardEntity, listEntities } from "../_actions";
+import { deleteProject } from "@/app/(app)/dashboard/_actions";
+import { useWizardStream } from "../_hooks/use-wizard-stream";
+import { takeWizardBrief, type WizardBrief } from "../_lib/wizard-handoff";
+import { wizardSlot } from "../_lib/wizard-layout";
 import { ENTITY_SHAPE_TYPE, EntityShapeUtil } from "./entity-shape-util";
 import type { EntityShape } from "./entity-shape-util";
 import { useMutation } from "@/lib/liveblocks.config";
+import { useRouter } from "@/i18n/navigation";
 
 import { EntityPanel } from "./entity-panel";
+import { WizardOverlay } from "./wizard-overlay";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +36,7 @@ export interface CanvasAppProps {
   userId: string;
   userName: string;
   isPro: boolean;
+  wizardRequested?: boolean;
 }
 
 // ─── Entity toolbar config ────────────────────────────────────────────────────
@@ -77,7 +86,7 @@ function getEntityDisplayName(entity: Record<string, unknown>, type: EntityType)
 // ─── CanvasApp ────────────────────────────────────────────────────────────────
 
 export function CanvasApp(props: CanvasAppProps) {
-  const { projectId, branchId, orgId, isPro } = props;
+  const { projectId, branchId, orgId, isPro, wizardRequested } = props;
   // TODO Task 9: pass props.userId and props.userName to EntityPanel for Liveblocks presence
 
   const t = useTranslations("Canvas");
@@ -371,6 +380,115 @@ export function CanvasApp(props: CanvasAppProps) {
     };
   }, [contextMenu, aiMenu]);
 
+  // ── AI onboarding wizard (Phase 8) ────────────────────────────────────────────
+
+  const router = useRouter();
+  const wizard = useWizardStream();
+  // Per-type counters for deterministic grid placement, independent of arrival order.
+  const wizardIndexRef = useRef<Record<EntityType, number>>({
+    character: 0,
+    location: 0,
+    faction: 0,
+    scene: 0,
+    timeline_event: 0,
+  });
+  const wizardStartedRef = useRef(false);
+  // Holds the resolved brief so "Try again" can re-run without re-reading (and
+  // re-clearing) sessionStorage, which takeWizardBrief already emptied.
+  const lastBriefRef = useRef<WizardBrief | null>(null);
+
+  // Persist one streamed entity, then place its shape at the next grid slot for
+  // its type. Returns true only if the Postgres row was created (drives rollback).
+  const placeWizardEntity = useCallback(
+    async (entity: WizardEntity): Promise<boolean> => {
+      const ed = editorRef.current;
+      if (!ed) return false;
+
+      const result = await createWizardEntity({ orgId, projectId, branchId, entity });
+      if (!result.success) return false;
+
+      const type = entity.entityType as EntityType;
+      const index = wizardIndexRef.current[type];
+      wizardIndexRef.current[type] = index + 1;
+      const { x, y } = wizardSlot(type, index);
+
+      const created = result.data as unknown as Record<string, unknown>;
+      const displayName = getEntityDisplayName(created, type);
+
+      ed.createShapes<EntityShape>([
+        {
+          id: `shape:${createId()}` as TLShapeId,
+          type: ENTITY_SHAPE_TYPE,
+          x,
+          y,
+          props: { entityId: result.data.id, entityType: type, displayName, w: 200, h: 120 },
+        },
+      ]);
+      return true;
+    },
+    [orgId, projectId, branchId],
+  );
+
+  const resetWizardIndices = useCallback(() => {
+    wizardIndexRef.current = {
+      character: 0,
+      location: 0,
+      faction: 0,
+      scene: 0,
+      timeline_event: 0,
+    };
+  }, []);
+
+  // Kick off the wizard once: the editor must be mounted and a brief must be
+  // present in sessionStorage (cleared on read, so a refresh won't re-run it).
+  useEffect(() => {
+    if (!wizardRequested || wizardStartedRef.current) return;
+    if (!editor) return;
+    const handoff = takeWizardBrief(projectId);
+    if (!handoff) return;
+    wizardStartedRef.current = true;
+    lastBriefRef.current = handoff;
+    resetWizardIndices();
+    wizard.start({
+      projectId,
+      brief: handoff.brief,
+      locale: handoff.locale,
+      onEntity: placeWizardEntity,
+    });
+  }, [wizardRequested, editor, projectId, wizard, placeWizardEntity, resetWizardIndices]);
+
+  // "Try again" (only offered when zero entities were created): re-run with the
+  // brief we cached on the first attempt.
+  const handleWizardRetry = useCallback(() => {
+    const brief = lastBriefRef.current;
+    if (!brief) return;
+    resetWizardIndices();
+    wizard.start({
+      projectId,
+      brief: brief.brief,
+      locale: brief.locale,
+      onEntity: placeWizardEntity,
+    });
+  }, [projectId, wizard, placeWizardEntity, resetWizardIndices]);
+
+  // Dismiss: zero entities created → roll back the empty project; otherwise keep it.
+  const handleWizardDismiss = useCallback(() => {
+    if (wizard.count === 0) {
+      void deleteProject({ projectId, orgId }).finally(() => {
+        router.push(ROUTES.dashboard);
+      });
+      return;
+    }
+    wizard.reset();
+  }, [wizard, projectId, orgId, router]);
+
+  // Free-tier defense in depth: a backend 402 (the dialog already gates this
+  // client-side) → roll back the empty project and bounce to the dashboard.
+  useEffect(() => {
+    if (!wizard.upgradeRequired) return;
+    void deleteProject({ projectId, orgId }).finally(() => router.push(ROUTES.dashboard));
+  }, [wizard.upgradeRequired, projectId, orgId, router]);
+
   // ── Loading / error states ────────────────────────────────────────────────────
 
   if (loadingState === "loading") {
@@ -393,6 +511,14 @@ export function CanvasApp(props: CanvasAppProps) {
 
   return (
     <div className="relative h-full w-full" onContextMenu={handleContextMenu}>
+      {/* AI onboarding wizard overlay (Phase 8) — covers the canvas while streaming. */}
+      <WizardOverlay
+        status={wizard.status}
+        count={wizard.count}
+        onRetry={handleWizardRetry}
+        onDismiss={handleWizardDismiss}
+      />
+
       {/* Entity type toolbar — RTL-safe: ltr:left-4 rtl:right-4 */}
       <div className="absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 rounded-lg border border-[#d9d9dd] bg-white p-2 shadow-sm ltr:left-4 rtl:right-4">
         {ENTITY_TYPE_KEYS.map(({ type, tKey, Icon }) => {
