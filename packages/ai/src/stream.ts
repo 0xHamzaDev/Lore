@@ -74,3 +74,93 @@ export async function streamModelText(opts: StreamModelTextOptions): Promise<Mod
     model: opts.model,
   };
 }
+
+export interface StreamModelTextSSEResult {
+  stream: ReadableStream<Uint8Array>;
+  done: Promise<{
+    usage: { inputTokens: number; outputTokens: number };
+    latencyMs: number;
+    text: string;
+  }>;
+}
+
+/**
+ * Streaming variant that exposes the raw byte stream. Phase 7+ uses this for
+ * `/api/ai/generate-field` etc. — the buffered `streamModelText` is kept for
+ * compact responses like `/api/ai/ping`.
+ *
+ * `done` resolves once the SDK emits a `finish` part. It rejects if any
+ * `error` part is emitted (e.g. an SDK 400). The stream itself closes on
+ * either path so consumers reading the stream see EOF either way.
+ */
+export function streamModelTextSSE(opts: StreamModelTextOptions): StreamModelTextSSEResult {
+  const start = Date.now();
+  const encoder = new TextEncoder();
+
+  const params: Parameters<typeof streamText>[0] = {
+    model: anthropic(opts.model),
+    maxTokens: opts.maxTokens ?? 1024,
+    abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
+  };
+  if (opts.system !== undefined) params.system = opts.system;
+  if (opts.prompt !== undefined) params.prompt = opts.prompt;
+  if (opts.messages !== undefined) params.messages = opts.messages;
+
+  const result = streamText(params);
+
+  let resolveDone!: (v: {
+    usage: { inputTokens: number; outputTokens: number };
+    latencyMs: number;
+    text: string;
+  }) => void;
+  let rejectDone!: (e: unknown) => void;
+  const done = new Promise<{
+    usage: { inputTokens: number; outputTokens: number };
+    latencyMs: number;
+    text: string;
+  }>((res, rej) => {
+    resolveDone = res;
+    rejectDone = rej;
+  });
+
+  let text = "";
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const part of result.fullStream) {
+          if (part.type === "text-delta") {
+            text += part.textDelta;
+            controller.enqueue(encoder.encode(part.textDelta));
+          } else if (part.type === "finish") {
+            inputTokens = part.usage.promptTokens ?? 0;
+            outputTokens = part.usage.completionTokens ?? 0;
+          } else if (part.type === "error") {
+            const err = part.error;
+            const e = err instanceof Error ? err : new Error(String(err));
+            rejectDone(e);
+            controller.close();
+            return;
+          }
+        }
+        controller.close();
+        resolveDone({
+          text,
+          usage: { inputTokens, outputTokens },
+          latencyMs: Date.now() - start,
+        });
+      } catch (err) {
+        rejectDone(err);
+        try {
+          controller.close();
+        } catch {
+          // controller may already be closed
+        }
+      }
+    },
+  });
+
+  return { stream, done };
+}
