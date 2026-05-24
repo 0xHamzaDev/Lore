@@ -7,3 +7,5 @@ export type {
   ModelTextResult,
   StreamModelTextSSEResult,
 } from "./stream";
+export { createNdjsonParser } from "./ndjson";
+export type { NdjsonParser } from "./ndjson";
