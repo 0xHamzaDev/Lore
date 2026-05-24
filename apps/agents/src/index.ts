@@ -1,6 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createNdjsonParser } from "@lore/ai";
+import { wizardEntitySchema } from "@lore/validators";
 import { runAgent, type AgentRunInput } from "./run-agent";
 import { runGenerateFieldStream, type GenerateFieldPayload } from "./generate-field";
+import { runWizardStream, type WizardPayload } from "./wizard";
 import { logAiRun } from "./logger";
 
 const PORT = Number(process.env["PORT"] ?? 4000);
@@ -70,6 +73,80 @@ async function handleAgentStream(
       status: "error",
       errorMessage: message,
       accepted: false,
+    });
+    res.write(sseFrame("error", { message }));
+  }
+  res.end();
+}
+
+// Wizard streaming: parses the model's NDJSON output line-by-line, validates
+// each entity, and emits one `entity_created` SSE frame per valid entity. Logs a
+// single ai_runs row (run_type='wizard') at stream end and emits `wizard_complete`
+// (or `error`). Never writes entity rows — the browser persists them.
+async function handleWizardStream(payload: WizardPayload, res: ServerResponse): Promise<void> {
+  const orgId = payload.orgId ?? null;
+  const projectId = payload.projectId ?? null;
+  const start = Date.now();
+
+  const { stream, done, model } = runWizardStream(payload);
+
+  res.writeHead(200, {
+    "content-type": "text/event-stream",
+    "cache-control": "no-cache, no-transform",
+    connection: "keep-alive",
+  });
+
+  const parser = createNdjsonParser();
+  let count = 0;
+
+  const emit = (objs: unknown[]) => {
+    for (const obj of objs) {
+      const parsed = wizardEntitySchema.safeParse(obj);
+      if (!parsed.success) continue; // skip a malformed/unknown entity
+      count += 1;
+      res.write(sseFrame("entity_created", parsed.data));
+    }
+  };
+
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  try {
+    for (;;) {
+      const { done: streamDone, value } = await reader.read();
+      if (streamDone) break;
+      const text = decoder.decode(value, { stream: true });
+      if (text) emit(parser.push(text));
+    }
+    emit(parser.flush());
+  } catch {
+    // A read error means the `done` promise below rejects too — handle it there.
+  }
+
+  try {
+    const meta = await done;
+    await logAiRun({
+      orgId,
+      projectId,
+      runType: "wizard",
+      model,
+      inputTokens: meta.usage.inputTokens,
+      outputTokens: meta.usage.outputTokens,
+      latencyMs: meta.latencyMs,
+      status: "success",
+    });
+    res.write(
+      sseFrame("wizard_complete", { count, usage: meta.usage, latencyMs: meta.latencyMs, model }),
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await logAiRun({
+      orgId,
+      projectId,
+      runType: "wizard",
+      model,
+      latencyMs: Date.now() - start,
+      status: "error",
+      errorMessage: message,
     });
     res.write(sseFrame("error", { message }));
   }
@@ -146,16 +223,18 @@ const server = createServer((req, res) => {
         sendJson(res, 400, { success: false, error: message });
         return;
       }
-      // Only field generation streams today; wizard/command streaming land in
-      // Phases 8-9. Reject other types before opening the SSE response so the
-      // caller gets a clean JSON error, not a half-open stream.
-      if (!body || body.type !== "generate-field") {
-        sendJson(res, 400, { success: false, error: "unsupported stream type" });
+      // Each streaming handler owns the response from here (headers + end) and
+      // never throws — failures are emitted as an SSE `error` event. Command
+      // streaming lands in Phase 9.
+      if (body?.type === "generate-field") {
+        await handleAgentStream((body.payload ?? {}) as GenerateFieldPayload, res);
         return;
       }
-      // handleAgentStream owns the response from here (headers + end), and
-      // never throws — failures are emitted as an SSE `error` event.
-      await handleAgentStream((body.payload ?? {}) as GenerateFieldPayload, res);
+      if (body?.type === "wizard") {
+        await handleWizardStream((body.payload ?? {}) as WizardPayload, res);
+        return;
+      }
+      sendJson(res, 400, { success: false, error: "unsupported stream type" });
       return;
     }
 
