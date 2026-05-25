@@ -13,7 +13,8 @@
     "@langchain/langgraph": "^0.2.0",
     "@lore/ai": "workspace:*",
     "@lore/db": "workspace:*",
-    "@lore/validators": "workspace:*"
+    "@lore/validators": "workspace:*",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@lore/config": "workspace:*",
