@@ -5,6 +5,7 @@ import { runAgent, type AgentRunInput } from "./run-agent";
 import { runGenerateFieldStream, type GenerateFieldPayload } from "./generate-field";
 import { runWizardStream, type WizardPayload } from "./wizard";
 import { runQueryStream, type QueryPayload } from "./query";
+import { runBackgroundAgents } from "./agents/background";
 import { logAiRun } from "./logger";
 
 const PORT = Number(process.env["PORT"] ?? 4000);
@@ -263,6 +264,37 @@ const server = createServer((req, res) => {
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error("[agents] agent-run failed", message);
+        sendJson(res, 500, { success: false, error: message });
+      }
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/internal/agent-run-background") {
+      const token = req.headers["x-internal-token"];
+      if (!INTERNAL_AGENT_TOKEN || token !== INTERNAL_AGENT_TOKEN) {
+        sendJson(res, 401, { success: false, error: "unauthorized" });
+        return;
+      }
+
+      try {
+        const body = (await readJsonBody(req)) as {
+          orgId?: string;
+          projectId?: string;
+          branchId?: string;
+        };
+        if (!body?.orgId || !body?.projectId || !body?.branchId) {
+          sendJson(res, 400, { success: false, error: "missing orgId/projectId/branchId" });
+          return;
+        }
+        const data = await runBackgroundAgents({
+          orgId: body.orgId,
+          projectId: body.projectId,
+          branchId: body.branchId,
+        });
+        sendJson(res, 200, { success: true, data });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[agents] background run failed", message);
         sendJson(res, 500, { success: false, error: message });
       }
       return;
