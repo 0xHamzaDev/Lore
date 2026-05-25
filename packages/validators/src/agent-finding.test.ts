@@ -41,6 +41,26 @@ describe("agentFindingSchema", () => {
     });
     expect(out.success).toBe(false);
   });
+
+  it("accepts a message at the lower bound (8 chars)", () => {
+    const out = agentFindingSchema.safeParse({
+      entityId: "c1",
+      entityType: "character",
+      severity: "info",
+      message: "12345678",
+    });
+    expect(out.success).toBe(true);
+  });
+
+  it("rejects a message above the upper bound (401 chars)", () => {
+    const out = agentFindingSchema.safeParse({
+      entityId: "c1",
+      entityType: "character",
+      severity: "info",
+      message: "x".repeat(401),
+    });
+    expect(out.success).toBe(false);
+  });
 });
 
 describe("agentFindingsPayloadSchema", () => {
@@ -57,6 +77,31 @@ describe("agentFindingsPayloadSchema", () => {
       message: "ok message length",
     }));
     const out = agentFindingsPayloadSchema.safeParse({ findings });
+    expect(out.success).toBe(false);
+  });
+
+  it("accepts exactly 50 findings (upper boundary)", () => {
+    const findings = Array.from({ length: 50 }, () => ({
+      entityId: "c1",
+      entityType: "character" as const,
+      severity: "info" as const,
+      message: "ok message length",
+    }));
+    const out = agentFindingsPayloadSchema.safeParse({ findings });
+    expect(out.success).toBe(true);
+  });
+
+  it("rejects a payload whose finding is itself invalid", () => {
+    const out = agentFindingsPayloadSchema.safeParse({
+      findings: [
+        {
+          entityId: "c1",
+          entityType: "character",
+          severity: "not-a-real-severity",
+          message: "ok message length",
+        },
+      ],
+    });
     expect(out.success).toBe(false);
   });
 });

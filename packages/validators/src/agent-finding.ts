@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { entityTypeSchema } from "./command";
 
 // Single agent finding. `entityId`/`entityType` are null when the finding
 // applies to the project as a whole (e.g. pacing complaining about act-2
@@ -6,7 +7,7 @@ import { z } from "zod";
 // agent's system prompt.
 export const agentFindingSchema = z.object({
   entityId: z.string().nullable(),
-  entityType: z.enum(["character", "location", "faction", "scene", "timeline_event"]).nullable(),
+  entityType: entityTypeSchema.nullable(),
   severity: z.enum(["error", "warning", "info"]),
   message: z.string().min(8).max(400),
 });
