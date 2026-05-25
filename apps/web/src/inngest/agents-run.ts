@@ -16,9 +16,15 @@ export async function _handler({
   // Free orgs don't get background story checks (cost gate). The teaser in
   // the canvas sidebar is static — no live count to leak.
   const sub = await step.run("load-subscription", () => requireSubscription(orgId));
-  if (sub.plan === "free") return { skipped: "free_plan" };
+  if (!sub.allowed) return { skipped: "free_plan" };
 
-  return step.run("call-agents", () => callAgentsBackground({ orgId, projectId, branchId }));
+  return step.run("call-agents", async () => {
+    const result = await callAgentsBackground({ orgId, projectId, branchId });
+    if (!result.success) {
+      throw new Error(result.error ?? "agents background call failed");
+    }
+    return result;
+  });
 }
 
 // inngest@4 moved the trigger into the config object (`triggers: [...]`) and
