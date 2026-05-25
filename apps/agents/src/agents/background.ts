@@ -52,9 +52,13 @@ async function runOne(args: {
   call: () => Promise<SingleAgentResult>;
 }): Promise<AgentRunSummary> {
   const start = Date.now();
+  let result: SingleAgentResult;
+  let aiRunId: string | null;
+
+  // Model call + ai_runs success/error row. On model failure return immediately.
   try {
-    const result = await args.call();
-    const aiRunId = await logAiRun({
+    result = await args.call();
+    aiRunId = await logAiRun({
       orgId: args.orgId,
       projectId: args.projectId,
       runType: "agent",
@@ -64,20 +68,6 @@ async function runOne(args: {
       latencyMs: result.latencyMs,
       status: "success",
     });
-    await upsertFindings({
-      orgId: args.orgId,
-      projectId: args.projectId,
-      branchId: args.branchId,
-      agentType: args.agent,
-      aiRunId,
-      payload: result.findings,
-    });
-    return {
-      agent: args.agent,
-      status: "success",
-      findings: result.findings.length,
-      latencyMs: result.latencyMs,
-    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await logAiRun({
@@ -97,15 +87,59 @@ async function runOne(args: {
       error: message,
     };
   }
+
+  // Persistence step. Failures here are logged but do NOT write a second
+  // ai_runs row — the model call already succeeded and was billed.
+  try {
+    await upsertFindings({
+      orgId: args.orgId,
+      projectId: args.projectId,
+      branchId: args.branchId,
+      agentType: args.agent,
+      aiRunId,
+      payload: result.findings,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[agents] upsertFindings failed for ${args.agent}`, message);
+    // The summary still reports success (the model call succeeded). Next run
+    // will re-attempt the upsert; dismissed rows stay dismissed.
+  }
+
+  return {
+    agent: args.agent,
+    status: "success",
+    findings: result.findings.length,
+    latencyMs: result.latencyMs,
+  };
 }
 
 export async function runBackgroundAgents(input: BackgroundInput): Promise<BackgroundResult> {
   const startedAt = Date.now();
-  const ctx = await buildAgentContext({
-    orgId: input.orgId,
-    projectId: input.projectId,
-    branchId: input.branchId,
-  });
+
+  let ctx: Awaited<ReturnType<typeof buildAgentContext>>;
+  try {
+    ctx = await buildAgentContext({
+      orgId: input.orgId,
+      projectId: input.projectId,
+      branchId: input.branchId,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Preserve the "every AI op gets a row" invariant: one error row scoped
+    // to org/project records that the run couldn't begin. Agents never ran,
+    // so results stays empty.
+    await logAiRun({
+      orgId: input.orgId,
+      projectId: input.projectId,
+      runType: "agent",
+      model: MODELS.sonnet,
+      latencyMs: Date.now() - startedAt,
+      status: "error",
+      errorMessage: `context: ${message}`,
+    });
+    return { startedAt, completedAt: Date.now(), results: [] };
+  }
 
   const results = await Promise.all([
     runOne({
