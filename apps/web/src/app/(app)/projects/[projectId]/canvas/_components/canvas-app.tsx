@@ -4,7 +4,7 @@ import "tldraw/tldraw.css";
 
 import { createId } from "@paralleldrive/cuid2";
 import type { EntityType } from "@lore/db";
-import { Clock, Film, MapPin, Shield, Sparkles, User, Wand2 } from "lucide-react";
+import { Clock, Film, ListChecks, MapPin, Shield, Sparkles, User, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
@@ -27,6 +27,8 @@ import { useRouter } from "@/i18n/navigation";
 import { EntityPanel } from "./entity-panel";
 import { WizardOverlay } from "./wizard-overlay";
 import { CommandBar } from "./command-bar";
+import { FindingsSidebar } from "./findings-sidebar";
+import { CanvasStatus } from "./canvas-status";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,8 +95,10 @@ export function CanvasApp(props: CanvasAppProps) {
   const t = useTranslations("Canvas");
   const tEntity = useTranslations("Entity");
   const tCommon = useTranslations("Common");
+  const tFindings = useTranslations("CanvasFindings");
   const locale = useLocale() as "ar" | "en";
   const [commandBarOpen, setCommandBarOpen] = useState(false);
+  const [findingsOpen, setFindingsOpen] = useState(false);
 
   // Global Cmd/Ctrl+K opens the command bar. Suppressed while focus is inside
   // an editable element so the entity-panel input flow isn't hijacked.
@@ -558,6 +562,21 @@ export function CanvasApp(props: CanvasAppProps) {
         })}
       </div>
 
+      {/* Story-check status + findings toggle — top-end, RTL-safe. */}
+      <div className="absolute top-4 z-10 flex items-center gap-2 ltr:right-4 rtl:left-4">
+        <CanvasStatus projectId={projectId} branchId={branchId} />
+        <button
+          type="button"
+          title={tFindings("sidebarTitle")}
+          aria-label={tFindings("sidebarTitle")}
+          onClick={() => setFindingsOpen((v) => !v)}
+          className="flex items-center gap-1.5 rounded-lg border border-[#d9d9dd] bg-white px-3 py-2 text-sm font-medium text-[#17171c] shadow-sm transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
+        >
+          <ListChecks size={16} />
+          <span className="text-[12px] leading-none">{tFindings("sidebarTitle")}</span>
+        </button>
+      </div>
+
       {/* Dev-only: nuke the Liveblocks LiveMap to recover from schema crashes. */}
       {isDev && (
         <button
@@ -691,6 +710,14 @@ export function CanvasApp(props: CanvasAppProps) {
           }}
         />
       )}
+
+      {/* Findings sidebar — toggled from the top-end toolbar. */}
+      <FindingsSidebar
+        projectId={projectId}
+        branchId={branchId}
+        open={findingsOpen}
+        onClose={() => setFindingsOpen(false)}
+      />
 
       {/* AI Command Bar — Cmd/Ctrl+K. */}
       <CommandBar

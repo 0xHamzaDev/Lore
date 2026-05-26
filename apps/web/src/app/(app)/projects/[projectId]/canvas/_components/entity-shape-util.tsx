@@ -13,6 +13,37 @@ import {
 } from "tldraw";
 import type { RecordProps, TLShape } from "tldraw";
 
+import { useShapeSeverity } from "../_hooks/findings-store";
+
+// ─── Severity dot ──────────────────────────────────────────────────────────────
+
+const SEVERITY_COLOR: Record<"error" | "warning" | "info", string> = {
+  error: "#dc2626",
+  warning: "#f59e0b",
+  info: "#3b82f6",
+};
+
+// Reads its entity's highest-severity finding from the module-level findings
+// store. Renders nothing when clean. tldraw's component() is a real React render
+// method, so this hook works once extracted into a child component.
+function SeverityDot({ entityId }: { entityId: string }) {
+  const severity = useShapeSeverity(entityId);
+  if (!severity) return null;
+  return (
+    <span
+      style={{
+        position: "absolute",
+        top: 8,
+        insetInlineEnd: 10,
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        backgroundColor: SEVERITY_COLOR[severity],
+      }}
+    />
+  );
+}
+
 // ─── Module augmentation: register the shape with tldraw's type system ─────────
 
 declare module "@tldraw/tlschema" {
@@ -144,18 +175,8 @@ export class EntityShapeUtil extends ShapeUtil<EntityShape> {
           pointerEvents: "none",
         }}
       >
-        {/* Severity dot placeholder (top-right) */}
-        <span
-          style={{
-            position: "absolute",
-            top: 8,
-            insetInlineEnd: 10,
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            backgroundColor: "#9ca3af",
-          }}
-        />
+        {/* Severity dot (top-right) — reads live findings, hidden when clean. */}
+        <SeverityDot entityId={shape.props.entityId} />
 
         {/* Icon + name */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
