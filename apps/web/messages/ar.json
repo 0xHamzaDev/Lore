@@ -436,5 +436,25 @@
       "cancel": "إلغاء",
       "confirm": "حذف"
     }
+  },
+  "CanvasFindings": {
+    "sidebarTitle": "فحوصات القصة",
+    "close": "إغلاق",
+    "errors": "أخطاء",
+    "warnings": "تحذيرات",
+    "info": "اقتراحات",
+    "empty": "لا توجد ملاحظات. القصة متماسكة.",
+    "dismiss": "تجاهل",
+    "dismissed": "تم تجاهل الملاحظة",
+    "dismissError": "تعذّر تجاهل الملاحظة",
+    "runRunning": "جاري فحص القصة…",
+    "runComplete": "اكتمل فحص القصة — {count} ملاحظة",
+    "upgradeTitle": "فعّل فحوصات القصة",
+    "upgradeBody": "اشترك في خطة Pro للحصول على فحوصات استمرارية القصة، الإيقاع، الحوار، والتحقق.",
+    "upgradeCta": "الترقية إلى Pro",
+    "agentContinuity": "الاستمرارية",
+    "agentPacing": "الإيقاع",
+    "agentDialogue": "الحوار",
+    "agentVerification": "التحقق"
   }
 }

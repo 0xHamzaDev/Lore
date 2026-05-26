@@ -436,5 +436,25 @@
       "cancel": "Cancel",
       "confirm": "Delete"
     }
+  },
+  "CanvasFindings": {
+    "sidebarTitle": "Story checks",
+    "close": "Close",
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "info": "Suggestions",
+    "empty": "No issues found. Story is clean.",
+    "dismiss": "Dismiss",
+    "dismissed": "Finding dismissed",
+    "dismissError": "Could not dismiss finding",
+    "runRunning": "Story check running…",
+    "runComplete": "Story check complete — {count} issues",
+    "upgradeTitle": "Unlock story checks",
+    "upgradeBody": "Upgrade to Pro for AI story checks across continuity, pacing, dialogue, and verification.",
+    "upgradeCta": "Upgrade to Pro",
+    "agentContinuity": "Continuity",
+    "agentPacing": "Pacing",
+    "agentDialogue": "Dialogue",
+    "agentVerification": "Verification"
   }
 }
