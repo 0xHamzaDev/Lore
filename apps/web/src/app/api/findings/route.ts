@@ -1,4 +1,5 @@
-import { requireAuth } from "@lore/auth/guard";
+import { auth } from "@lore/auth";
+import { headers } from "next/headers";
 import { requireOrgRole } from "@lore/auth/permissions";
 import { requireSubscription } from "@lore/auth/subscription";
 import { db, agentFindings, aiRuns, projects, and, desc, eq } from "@lore/db";
@@ -9,13 +10,11 @@ export const dynamic = "force-dynamic";
 // findings list, the latest agent run's start/completion timestamps (for the
 // "Story check running…" indicator), and a freeTeaser flag for free orgs.
 export async function GET(req: Request): Promise<Response> {
-  // requireAuth() redirects on no session in production; the `"success" in`
-  // guard keeps the unauthorized branch type-safe and lets tests drive it via
-  // an ActionResult-shaped mock without depending on a redirect.
-  const auth = await requireAuth();
-  if (auth && typeof auth === "object" && "success" in auth && auth.success === false) {
-    return Response.json({ error: "unauthorized" }, { status: 401 });
-  }
+  // Explicit session check — this is a JSON polling endpoint, so return a real
+  // 401 rather than requireAuth()'s page-oriented redirect to /sign-in (which
+  // would hand a fetch() caller an HTML body it can't parse).
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const projectId = url.searchParams.get("projectId");
