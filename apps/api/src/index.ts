@@ -84,4 +84,24 @@ app.post("/agent/command", (c) => forward(c, "command"));
 app.post("/agent/query", (c) => forwardStream(c, "query"));
 app.post("/agent/generate-field", (c) => forwardStream(c, "generate-field"));
 
+// Fire-and-return: forwards Inngest's debounced trigger to the agents server.
+// The agents server runs all 4 background agents and returns a summary. No
+// streaming — the Next side is also non-streaming (Inngest function awaits).
+app.post("/agent/run-background", async (c) => {
+  const payload = await c.req.json().catch(() => ({}));
+  const upstream = await fetch(`${c.env.AGENTS_SERVER_URL}/internal/agent-run-background`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-internal-token": c.env.INTERNAL_AGENT_TOKEN,
+    },
+    body: JSON.stringify(payload),
+  });
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: { "content-type": "application/json" },
+  });
+});
+
 export default app;

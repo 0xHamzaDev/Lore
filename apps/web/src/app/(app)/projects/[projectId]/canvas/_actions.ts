@@ -13,11 +13,13 @@ import {
   projects,
   branches,
   aiRuns,
+  agentFindings,
   and,
   asc,
   eq,
   isNull,
 } from "@lore/db";
+import { emitEntityUpdated } from "@/lib/inngest/emit";
 import type {
   Character,
   Location,
@@ -146,6 +148,13 @@ export async function createEntity(data: {
       inserted = row as Character | Location | Faction;
     }
 
+    await emitEntityUpdated({
+      orgId: data.orgId,
+      projectId: data.projectId,
+      branchId: data.branchId,
+      entityId: inserted.id,
+      entityType: data.type,
+    });
     return { success: true, data: inserted };
   } catch {
     return { success: false, error: "Failed to create entity." };
@@ -244,6 +253,14 @@ export async function updateEntity(data: {
       .returning();
 
     if (!updated) return { success: false, error: "Entity not found." };
+
+    await emitEntityUpdated({
+      orgId: data.orgId,
+      projectId: updated.projectId,
+      branchId: updated.branchId,
+      entityId: updated.id,
+      entityType: data.type,
+    });
     return { success: true, data: updated as AnyEntity };
   } catch {
     return { success: false, error: "Failed to update entity." };
@@ -304,6 +321,13 @@ export async function acceptFieldSuggestion(data: {
         .where(and(eq(aiRuns.id, data.aiRunId), eq(aiRuns.orgId, data.orgId)));
     }
 
+    await emitEntityUpdated({
+      orgId: data.orgId,
+      projectId: updated.projectId,
+      branchId: updated.branchId,
+      entityId: updated.id,
+      entityType: data.type,
+    });
     return { success: true, data: updated as AnyEntity };
   } catch {
     return { success: false, error: "Failed to save suggestion." };
@@ -331,6 +355,22 @@ export async function deleteEntity(data: {
       .returning();
 
     if (!deleted) return { success: false, error: "Entity not found." };
+
+    // Sync-resolve open findings anchored to this entity so the dot + sidebar
+    // clear immediately. A later background run would do this too via the
+    // sweep, but waiting 10–30s for the next cycle would be visibly stale.
+    await db
+      .update(agentFindings)
+      .set({ status: "resolved", resolvedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(agentFindings.entityId, data.entityId), eq(agentFindings.status, "open")));
+
+    await emitEntityUpdated({
+      orgId: data.orgId,
+      projectId: deleted.projectId,
+      branchId: deleted.branchId,
+      entityId: deleted.id,
+      entityType: data.type,
+    });
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: "Failed to delete entity." };
