@@ -1,5 +1,5 @@
 import { generateObject } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { chatModel } from "./provider";
 import type { ZodSchema } from "zod";
 
 export interface GenerateModelObjectOptions<T> {
@@ -36,8 +36,13 @@ export async function generateModelObject<T>(
   // Record<string, unknown> because `Parameters<typeof generateObject>[0]`
   // collapses to the last (no-schema) overload, hiding the schema field.
   const params: Record<string, unknown> = {
-    model: anthropic(opts.model),
+    model: chatModel(opts.model),
     schema: opts.schema,
+    // Force JSON mode rather than tool-calling: Ollama's OpenAI-compatible
+    // endpoint reliably supports `response_format: json_object`, whereas
+    // function-call structured output varies by model. The SDK injects the
+    // schema into the prompt in this mode.
+    mode: "json",
     maxTokens: opts.maxTokens ?? 1024,
     abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
   };

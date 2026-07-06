@@ -1,11 +1,13 @@
 import { streamText, type CoreMessage } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { chatModel, DEFAULT_MODEL } from "./provider";
 
-// Exact model IDs — never construct or date-suffix these.
+// Model tier keys kept stable for call sites; every tier resolves to the
+// configured Ollama model (OLLAMA_MODEL). Ollama exposes one quality tier per
+// tag, so there is no opus/sonnet/haiku split — set OLLAMA_MODEL to change it.
 export const MODELS = {
-  opus: "claude-opus-4-7",
-  sonnet: "claude-sonnet-4-6",
-  haiku: "claude-haiku-4-5",
+  opus: DEFAULT_MODEL,
+  sonnet: DEFAULT_MODEL,
+  haiku: DEFAULT_MODEL,
 } as const;
 
 export interface StreamModelTextOptions {
@@ -26,10 +28,10 @@ export interface ModelTextResult {
 }
 
 /**
- * Thin wrapper over the Vercel AI SDK + Anthropic. Streams the completion to
+ * Thin wrapper over the Vercel AI SDK + Ollama. Streams the completion to
  * accumulate full text, and reports token usage plus wall-clock latency so the
  * caller (the agents server) can log a single ai_runs row per model call.
- * Reads ANTHROPIC_API_KEY from the environment via @ai-sdk/anthropic.
+ * Reads OLLAMA_API_KEY / OLLAMA_BASE_URL from the environment (see ./provider).
  */
 export async function streamModelText(opts: StreamModelTextOptions): Promise<ModelTextResult> {
   const start = Date.now();
@@ -37,7 +39,7 @@ export async function streamModelText(opts: StreamModelTextOptions): Promise<Mod
   // Build params without explicit `undefined` keys — the AI SDK's option types
   // reject `undefined` under exactOptionalPropertyTypes.
   const params: Parameters<typeof streamText>[0] = {
-    model: anthropic(opts.model),
+    model: chatModel(opts.model),
     maxTokens: opts.maxTokens ?? 1024,
     // AbortSignal.timeout guarantees the call can never hang indefinitely on a
     // stalled connection — it aborts and the stream surfaces the abort error.
@@ -98,7 +100,7 @@ export function streamModelTextSSE(opts: StreamModelTextOptions): StreamModelTex
   const encoder = new TextEncoder();
 
   const params: Parameters<typeof streamText>[0] = {
-    model: anthropic(opts.model),
+    model: chatModel(opts.model),
     maxTokens: opts.maxTokens ?? 1024,
     abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
   };
