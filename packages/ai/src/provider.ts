@@ -29,10 +29,14 @@ const ollama = createOpenAI({
 
 /**
  * The single configurable default model. Override with OLLAMA_MODEL. Ollama
- * model tags (e.g. `qwen3`, `llama3.3`) differ from Anthropic's IDs, so if the
- * tag your account exposes differs from the default below, set OLLAMA_MODEL.
+ * model tags differ from Anthropic's IDs, so set OLLAMA_MODEL to whatever your
+ * account exposes (`ollama list` / GET /v1/models). `gpt-oss:20b` is the
+ * default: it is small/fast, OpenAI-family (best fit for this OpenAI-compatible
+ * provider), and returns real `content` (not just a separate reasoning field,
+ * which large reasoning models like `qwen3.5:397b` do — those leave `content`
+ * empty within the token budget and break field/JSON generation).
  */
-export const DEFAULT_MODEL = env.OLLAMA_MODEL ?? "qwen3.6";
+export const DEFAULT_MODEL = env.OLLAMA_MODEL ?? "gpt-oss:20b";
 
 /**
  * Resolve a request's model id to a real Ollama model. Callers historically
@@ -44,4 +48,14 @@ export const DEFAULT_MODEL = env.OLLAMA_MODEL ?? "qwen3.6";
 export function chatModel(id?: string) {
   const resolved = !id || id.startsWith("claude") ? DEFAULT_MODEL : id;
   return ollama(resolved);
+}
+
+/**
+ * Coerce a model-reported token count to a safe non-negative integer. Ollama's
+ * streaming responses often omit usage, so the AI SDK surfaces `NaN` — which
+ * `?? 0` does NOT catch and which then fails the `ai_runs.input_tokens` integer
+ * insert ("invalid input syntax for type integer: NaN"). Guard on finiteness.
+ */
+export function toTokenCount(n: unknown): number {
+  return typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
 }

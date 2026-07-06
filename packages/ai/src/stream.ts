@@ -1,5 +1,5 @@
 import { streamText, type CoreMessage } from "ai";
-import { chatModel, DEFAULT_MODEL } from "./provider";
+import { chatModel, DEFAULT_MODEL, toTokenCount } from "./provider";
 
 // Model tier keys kept stable for call sites; every tier resolves to the
 // configured Ollama model (OLLAMA_MODEL). Ollama exposes one quality tier per
@@ -64,8 +64,8 @@ export async function streamModelText(opts: StreamModelTextOptions): Promise<Mod
       const err = part.error;
       throw err instanceof Error ? err : new Error(String(err));
     } else if (part.type === "finish") {
-      inputTokens = part.usage.promptTokens ?? 0;
-      outputTokens = part.usage.completionTokens ?? 0;
+      inputTokens = toTokenCount(part.usage.promptTokens);
+      outputTokens = toTokenCount(part.usage.completionTokens);
     }
   }
 
@@ -137,8 +137,8 @@ export function streamModelTextSSE(opts: StreamModelTextOptions): StreamModelTex
             text += part.textDelta;
             controller.enqueue(encoder.encode(part.textDelta));
           } else if (part.type === "finish") {
-            inputTokens = part.usage.promptTokens ?? 0;
-            outputTokens = part.usage.completionTokens ?? 0;
+            inputTokens = toTokenCount(part.usage.promptTokens);
+            outputTokens = toTokenCount(part.usage.completionTokens);
           } else if (part.type === "error") {
             const err = part.error;
             const e = err instanceof Error ? err : new Error(String(err));
