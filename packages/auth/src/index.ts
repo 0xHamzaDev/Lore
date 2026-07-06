@@ -12,6 +12,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { createId } from "@paralleldrive/cuid2";
+import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -56,29 +57,54 @@ export const auth = betterAuth({
     }),
   ],
   databaseHooks: {
-    user: {
+    session: {
       create: {
-        after: async (user) => {
-          const orgId = createId();
-          const memberId = createId();
-          const slug = `personal-${user.id}`;
+        // Ensure the user has a personal org and point the new session at it.
+        // Every AI route and requirePro reads session.activeOrganizationId and
+        // 400s ("no_active_org") when it's null, so it MUST be set on the very
+        // first session. Org creation lives here (not in user.create.after)
+        // because that hook runs after the session is created on sign-up, so a
+        // freshly signed-up user's first session had no org and no AI access.
+        // Runs on sign-up (creates the org) and every sign-in (org exists).
+        before: async (session) => {
+          let [membership] = await db
+            .select({ organizationId: members.organizationId })
+            .from(members)
+            .where(eq(members.userId, session.userId))
+            .limit(1);
 
-          await db.insert(organizations).values({
-            id: orgId,
-            name: user.name ?? user.email.split("@")[0] ?? "My Organization",
-            slug,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+          if (!membership) {
+            const [user] = await db
+              .select({ name: users.name, email: users.email })
+              .from(users)
+              .where(eq(users.id, session.userId))
+              .limit(1);
+            const orgId = createId();
+            const now = new Date();
+            await db.insert(organizations).values({
+              id: orgId,
+              name: user?.name ?? user?.email?.split("@")[0] ?? "My Organization",
+              slug: `personal-${session.userId}`,
+              createdAt: now,
+              updatedAt: now,
+            });
+            await db.insert(members).values({
+              id: createId(),
+              organizationId: orgId,
+              userId: session.userId,
+              role: "owner",
+              createdAt: now,
+              updatedAt: now,
+            });
+            membership = { organizationId: orgId };
+          }
 
-          await db.insert(members).values({
-            id: memberId,
-            organizationId: orgId,
-            userId: user.id,
-            role: "owner",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: membership.organizationId,
+            },
+          };
         },
       },
     },
