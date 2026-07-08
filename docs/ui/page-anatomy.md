@@ -23,14 +23,14 @@ AppShell
 
 ```tsx
 // app/[locale]/(dashboard)/[feature]/page.tsx
-import { PageHeader } from "@packages/ui"
-import { auth } from "@packages/auth"
-import { FeatureList } from "./_components/feature-list"
+import { PageHeader } from "@packages/ui";
+import { auth } from "@packages/auth";
+import { FeatureList } from "./_components/feature-list";
 
-export const metadata = { title: "Feature — AppName" }
+export const metadata = { title: "Feature — AppName" };
 
 export default async function FeaturePage() {
-  const session = await auth()
+  const session = await auth();
 
   return (
     <div className="flex flex-col gap-8 p-6 lg:p-8">
@@ -41,7 +41,7 @@ export default async function FeaturePage() {
       />
       <FeatureList orgId={session.orgId} />
     </div>
-  )
+  );
 }
 ```
 
@@ -49,10 +49,10 @@ export default async function FeaturePage() {
 
 ```tsx
 <PageHeader
-  title="Projects"             // required — maps to h1
-  description="..."            // optional — maps to p.text-muted-foreground
+  title="Projects" // required — maps to h1
+  description="..." // optional — maps to p.text-muted-foreground
   action={<Button>...</Button>} // optional — right-aligned CTA
-  breadcrumb                   // optional — renders <Breadcrumb /> above title
+  breadcrumb // optional — renders <Breadcrumb /> above title
 />
 ```
 
@@ -113,7 +113,7 @@ Use `loading.tsx` for route-level skeletons and `<Skeleton>` components inline f
 
 ```tsx
 // _components/project-list-skeleton.tsx
-import { Skeleton } from "@packages/ui"
+import { Skeleton } from "@packages/ui";
 
 export function ProjectListSkeleton() {
   return (
@@ -122,7 +122,7 @@ export function ProjectListSkeleton() {
         <Skeleton key={i} className="h-16 w-full rounded-sm" />
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -130,22 +130,29 @@ export function ProjectListSkeleton() {
 
 ```tsx
 // error.tsx (Next.js error boundary)
-"use client"
+"use client";
 
-export default function ErrorPage({ error, reset }: { error: Error; reset: () => void }) {
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
     <ErrorState
       title="Something went wrong"
       description={error.message}
       action={<Button onClick={reset}>Try again</Button>}
     />
-  )
+  );
 }
 ```
 
 ## Dialogs and Sheets
 
 Mutations that require a form use:
+
 - **Dialog** — small forms (≤ 4 fields), confirmations, destructive actions
 - **Sheet** — larger forms, detail views, multi-step flows
 
@@ -173,15 +180,15 @@ Every page must export a `metadata` object:
 export const metadata = {
   title: "Projects — Sitename",
   description: "Manage your AI projects.",
-}
+};
 ```
 
 For dynamic pages use `generateMetadata`:
 
 ```tsx
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const project = await getProject(params.id)
-  return { title: `${project.name} — Sitename` }
+  const project = await getProject(params.id);
+  return { title: `${project.name} — Sitename` };
 }
 ```
 
@@ -193,4 +200,5 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 - All icons paired with text; standalone icons have `aria-label`.
 
 ## Fonts
+
 - In Arabic language use IBM Plex Sans Arabic
