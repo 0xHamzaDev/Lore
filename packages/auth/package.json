@@ -6,6 +6,7 @@
     ".": "./src/index.ts",
     "./active-org": "./src/active-org.ts",
     "./guard": "./src/guard.ts",
+    "./org": "./src/org.ts",
     "./permissions": "./src/permissions.ts",
     "./subscription": "./src/subscription.ts"
   },

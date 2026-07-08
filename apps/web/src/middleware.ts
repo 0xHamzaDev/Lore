@@ -24,7 +24,6 @@ function hasSessionCookie(request: NextRequest): boolean {
   );
 }
 
-const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 const APP_ROUTES = ["/dashboard", "/projects", "/settings"];
 
 export function middleware(request: NextRequest) {
@@ -37,14 +36,15 @@ export function middleware(request: NextRequest) {
     (r) => pathname === r || pathname.startsWith(r + "/"),
   );
 
-  if (isAppRoute || isAuthRoute) {
-    const signedIn = hasSessionCookie(request);
-    if (isAppRoute && !signedIn) {
-      return NextResponse.redirect(new URL("/sign-in", request.url));
-    }
-    if (isAuthRoute && signedIn) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  // Only the unauthenticated guard lives here, and it keys off cookie
+  // *presence* for speed. We deliberately do NOT redirect a cookie-bearing
+  // user off /sign-in to /dashboard: the middleware can't tell a valid cookie
+  // from a stale/expired one, but the server can (requireAuth validates and
+  // redirects invalid sessions to /sign-in). Bouncing here on presence created
+  // an infinite loop — /sign-in → /dashboard → requireAuth invalid → /sign-in.
+  // An already-signed-in user visiting /sign-in just sees the form; harmless.
+  if (isAppRoute && !hasSessionCookie(request)) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   const locale = detectLocale(request);
