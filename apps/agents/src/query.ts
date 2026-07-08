@@ -1,4 +1,8 @@
-import { streamModelTextSSE, MODELS, type StreamModelTextSSEResult } from "@lore/ai";
+import {
+  streamModelTextSSE,
+  MODELS,
+  type StreamModelTextSSEResult,
+} from "@lore/ai";
 import type { CompactEntity } from "@lore/validators";
 
 // Payload the web route forwards (via the gateway) when the command router
@@ -14,7 +18,10 @@ export interface QueryPayload {
   model?: string;
 }
 
-export function buildQueryPrompt(payload: QueryPayload): { system: string; prompt: string } {
+export function buildQueryPrompt(payload: QueryPayload): {
+  system: string;
+  prompt: string;
+} {
   const lang = payload.locale === "ar" ? "Arabic" : "English";
   const question = (payload.question ?? "").trim();
   const entities = payload.entities ?? [];
@@ -46,7 +53,8 @@ export interface QueryStreamResult extends StreamModelTextSSEResult {
 // without re-deriving it.
 export function runQueryStream(payload: QueryPayload): QueryStreamResult {
   const { system, prompt } = buildQueryPrompt(payload);
-  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model =
+    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   const { stream, done } = streamModelTextSSE({
     model,
     system,

@@ -8,7 +8,11 @@ import { toast } from "sonner";
 import { Button, Skeleton } from "@lore/ui";
 import { QK } from "@lore/utils";
 import { dismissFinding } from "../_findings-actions";
-import { useFindings, type FindingRow, type Severity } from "../_hooks/use-findings";
+import {
+  useFindings,
+  type FindingRow,
+  type Severity,
+} from "../_hooks/use-findings";
 import { FindingsUpgradeCard } from "./findings-upgrade-card";
 
 const DOT: Record<Severity, string> = {
@@ -39,7 +43,12 @@ interface FindingsSidebarProps {
   onClose: () => void;
 }
 
-export function FindingsSidebar({ projectId, branchId, open, onClose }: FindingsSidebarProps) {
+export function FindingsSidebar({
+  projectId,
+  branchId,
+  open,
+  onClose,
+}: FindingsSidebarProps) {
   const t = useTranslations("CanvasFindings");
   const { data, isLoading } = useFindings(projectId, branchId);
   const queryClient = useQueryClient();
@@ -48,7 +57,11 @@ export function FindingsSidebar({ projectId, branchId, open, onClose }: Findings
   if (!open) return null;
 
   const findings = data?.findings ?? [];
-  const groups: Record<Severity, FindingRow[]> = { error: [], warning: [], info: [] };
+  const groups: Record<Severity, FindingRow[]> = {
+    error: [],
+    warning: [],
+    info: [],
+  };
   for (const f of findings) groups[f.severity].push(f);
 
   const onDismiss = (id: string) =>
@@ -59,13 +72,17 @@ export function FindingsSidebar({ projectId, branchId, open, onClose }: Findings
         return;
       }
       toast.success(t("dismissed"));
-      void queryClient.invalidateQueries({ queryKey: QK.findings.list(projectId, branchId) });
+      void queryClient.invalidateQueries({
+        queryKey: QK.findings.list(projectId, branchId),
+      });
     });
 
   return (
     <aside className="absolute inset-y-0 end-0 z-20 flex w-[420px] flex-col border-s border-[#d9d9dd] bg-white shadow-lg">
       <header className="flex items-center justify-between border-b border-[#d9d9dd] px-4 py-3">
-        <h2 className="text-sm font-semibold text-[#17171c]">{t("sidebarTitle")}</h2>
+        <h2 className="text-sm font-semibold text-[#17171c]">
+          {t("sidebarTitle")}
+        </h2>
         <Button
           variant="ghost"
           size="icon"
@@ -108,7 +125,9 @@ export function FindingsSidebar({ projectId, branchId, open, onClose }: Findings
                           aria-hidden
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs text-[#93939f]">{t(AGENT_TKEY[f.agentType])}</p>
+                          <p className="text-xs text-[#93939f]">
+                            {t(AGENT_TKEY[f.agentType])}
+                          </p>
                           <p className="text-sm text-[#17171c]">{f.message}</p>
                         </div>
                         <Button

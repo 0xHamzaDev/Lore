@@ -7,7 +7,9 @@ import type { ActionResult } from "@lore/utils";
 // Editor-only mutation. We look up the orgId from the finding's project to
 // avoid trusting an orgId from the browser. The finding's status is set to
 // 'dismissed' — sticky; agents will never reopen it.
-export async function dismissFinding(input: { findingId: string }): Promise<ActionResult<void>> {
+export async function dismissFinding(input: {
+  findingId: string;
+}): Promise<ActionResult<void>> {
   const [row] = await db
     .select({ projectId: agentFindings.projectId })
     .from(agentFindings)

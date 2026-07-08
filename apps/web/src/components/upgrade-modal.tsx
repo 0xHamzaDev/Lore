@@ -20,7 +20,11 @@ interface UpgradeModalProps {
   reason?: "project" | "ai";
 }
 
-export function UpgradeModal({ open, onClose, reason = "project" }: UpgradeModalProps) {
+export function UpgradeModal({
+  open,
+  onClose,
+  reason = "project",
+}: UpgradeModalProps) {
   const t = useTranslations("Upgrade");
   const tCommon = useTranslations("Common");
 

@@ -15,7 +15,10 @@ function sseError(message: string): Response {
   const frame = `event: error\ndata: ${JSON.stringify({ message })}\n\n`;
   return new Response(frame, {
     status: 200,
-    headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
   });
 }
 
@@ -39,7 +42,10 @@ export async function POST(req: Request): Promise<Response> {
   try {
     upstream = await fetch(`${env.API_GATEWAY_URL}/agent/wizard`, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     });
   } catch (err) {
@@ -54,6 +60,9 @@ export async function POST(req: Request): Promise<Response> {
 
   return new Response(upstream.body, {
     status: 200,
-    headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
   });
 }

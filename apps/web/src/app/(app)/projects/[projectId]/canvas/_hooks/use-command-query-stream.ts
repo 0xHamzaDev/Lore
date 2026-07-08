@@ -71,7 +71,11 @@ export function useCommandQueryStream(
       }
 
       if (!resp.ok || !resp.body) {
-        setState({ status: "error", text: "", error: `request_failed_${resp.status}` });
+        setState({
+          status: "error",
+          text: "",
+          error: `request_failed_${resp.status}`,
+        });
         return;
       }
 
@@ -91,14 +95,19 @@ export function useCommandQueryStream(
             const frame = buffer.slice(0, nl);
             buffer = buffer.slice(nl + 2);
             const event = parseSseFrame(frame);
-            if (event?.event === "delta" && typeof event.data?.text === "string") {
+            if (
+              event?.event === "delta" &&
+              typeof event.data?.text === "string"
+            ) {
               accumulated += event.data.text;
               setState({ status: "streaming", text: accumulated });
             } else if (event?.event === "done") {
               setState({ status: "done", text: accumulated });
             } else if (event?.event === "error") {
               const message =
-                typeof event.data?.message === "string" ? event.data.message : "stream_error";
+                typeof event.data?.message === "string"
+                  ? event.data.message
+                  : "stream_error";
               setState({ status: "error", text: accumulated, error: message });
             }
             nl = buffer.indexOf("\n\n");
@@ -106,7 +115,9 @@ export function useCommandQueryStream(
         }
         // If the stream ended without an explicit `done` event, treat as done.
         setState((prev) =>
-          prev.status === "streaming" ? { status: "done", text: prev.text } : prev,
+          prev.status === "streaming"
+            ? { status: "done", text: prev.text }
+            : prev,
         );
       } catch (err) {
         if (controller.signal.aborted) return;

@@ -31,7 +31,28 @@ import type {
   Branch,
 } from "@lore/db";
 import type { ActionResult } from "@lore/utils";
-import { wizardEntitySchema, type WizardEntity } from "@lore/validators";
+import {
+  wizardEntitySchema,
+  wizardCharacterData,
+  wizardLocationData,
+  wizardFactionData,
+  wizardSceneData,
+  wizardTimelineEventData,
+  type WizardEntity,
+} from "@lore/validators";
+
+// Per-type patch schemas for updateEntity. Reuse the wizard field schemas
+// (the single source of truth for writable entity fields — they exactly match
+// entity-panel's FIELD_CONFIG) made `.partial()` so any subset can be patched.
+// Zod strips unknown keys, so a tampered client can never write deletedAt, orgId,
+// or any other column through this path.
+const ENTITY_PATCH_SCHEMAS = {
+  character: wizardCharacterData.partial(),
+  location: wizardLocationData.partial(),
+  faction: wizardFactionData.partial(),
+  scene: wizardSceneData.partial(),
+  timeline_event: wizardTimelineEventData.partial(),
+} as const;
 
 // ---------------------------------------------------------------------------
 // Shared: project access guard
@@ -53,7 +74,12 @@ async function userCanAccessProject(
   const [membership] = await db
     .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.organizationId, project.orgId), eq(members.userId, userId)));
+    .where(
+      and(
+        eq(members.organizationId, project.orgId),
+        eq(members.userId, userId),
+      ),
+    );
   if (membership) return { ok: true, orgId: project.orgId };
 
   if (project.orgId === activeOrgId) return { ok: true, orgId: project.orgId };
@@ -96,13 +122,24 @@ export async function listEntities(
   branchId: string,
   orgId: string,
 ): Promise<ActionResult<AnyEntity[]>> {
+  // Authz, not just authn: verify the caller is a member of orgId before
+  // returning any rows. branchId + orgId both come from the (client-visible)
+  // canvas URL, so authn alone would let any signed-in user read another
+  // org's entity content (IDOR).
+  const authResult = await requireOrgRole(orgId, "viewer");
+  if (!authResult.success) return authResult;
   try {
-    await requireAuth();
     const table = tableFor(type);
     const rows = await db
       .select()
       .from(table)
-      .where(and(eq(table.branchId, branchId), eq(table.orgId, orgId), isNull(table.deletedAt)));
+      .where(
+        and(
+          eq(table.branchId, branchId),
+          eq(table.orgId, orgId),
+          isNull(table.deletedAt),
+        ),
+      );
     return { success: true, data: rows as AnyEntity[] };
   } catch (err) {
     // Re-throw Next.js redirect/not-found errors
@@ -143,8 +180,14 @@ export async function createEntity(data: {
         .returning();
       inserted = row as Scene | TimelineEvent;
     } else {
-      const table = tableFor(type) as typeof characters | typeof locations | typeof factions;
-      const [row] = await db.insert(table).values({ orgId, projectId, branchId, name }).returning();
+      const table = tableFor(type) as
+        | typeof characters
+        | typeof locations
+        | typeof factions;
+      const [row] = await db
+        .insert(table)
+        .values({ orgId, projectId, branchId, name })
+        .returning();
       inserted = row as Character | Location | Faction;
     }
 
@@ -240,12 +283,20 @@ export async function updateEntity(data: {
   const authResult = await requireOrgRole(data.orgId, "editor");
   if (!authResult.success) return authResult;
 
+  // Validate + whitelist the patch against the per-type field schema. This
+  // strips any non-editable column (id, orgId, deletedAt, …) and enforces the
+  // field types/length bounds, so a tampered client can't write arbitrary data.
+  const parsed = ENTITY_PATCH_SCHEMAS[data.type].safeParse(data.patch);
+  if (!parsed.success) {
+    return { success: false, error: "Invalid entity update." };
+  }
+  const safePatch = parsed.data as Record<string, unknown>;
+  if (Object.keys(safePatch).length === 0) {
+    return { success: false, error: "No valid fields to update." };
+  }
+
   try {
     const table = tableFor(data.type);
-    const safePatch = { ...(data.patch as Record<string, unknown>) };
-    for (const key of ["id", "orgId", "projectId", "branchId", "createdAt"]) {
-      delete safePatch[key];
-    }
     const [updated] = await db
       .update(table)
       .set({ ...safePatch, updatedAt: new Date() })
@@ -361,8 +412,17 @@ export async function deleteEntity(data: {
     // sweep, but waiting 10–30s for the next cycle would be visibly stale.
     await db
       .update(agentFindings)
-      .set({ status: "resolved", resolvedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(agentFindings.entityId, data.entityId), eq(agentFindings.status, "open")));
+      .set({
+        status: "resolved",
+        resolvedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(agentFindings.entityId, data.entityId),
+          eq(agentFindings.status, "open"),
+        ),
+      );
 
     await emitEntityUpdated({
       orgId: data.orgId,
@@ -383,7 +443,9 @@ export async function deleteEntity(data: {
 
 export async function getCanvasData(
   projectId: string,
-): Promise<ActionResult<{ projectId: string; branchId: string; orgId: string }>> {
+): Promise<
+  ActionResult<{ projectId: string; branchId: string; orgId: string }>
+> {
   const session = await requireAuth();
 
   try {
@@ -401,10 +463,18 @@ export async function getCanvasData(
     const [membership] = await db
       .select()
       .from(members)
-      .where(and(eq(members.organizationId, orgId), eq(members.userId, session.user.id)));
+      .where(
+        and(
+          eq(members.organizationId, orgId),
+          eq(members.userId, session.user.id),
+        ),
+      );
 
     if (!membership) {
-      return { success: false, error: "You are not a member of this organization." };
+      return {
+        success: false,
+        error: "You are not a member of this organization.",
+      };
     }
 
     // Fetch the main branch
@@ -477,7 +547,11 @@ async function copyEntityTable(
     .select()
     .from(table)
     .where(
-      and(eq(table.branchId, sourceBranchId), eq(table.orgId, orgId), isNull(table.deletedAt)),
+      and(
+        eq(table.branchId, sourceBranchId),
+        eq(table.orgId, orgId),
+        isNull(table.deletedAt),
+      ),
     );
   if (rows.length === 0) return;
 
@@ -508,7 +582,12 @@ export async function forkBranch(input: {
   name: string;
 }): Promise<
   ActionResult<{
-    branch: { id: string; name: string; parentBranchId: string; createdAt: Date };
+    branch: {
+      id: string;
+      name: string;
+      parentBranchId: string;
+      createdAt: Date;
+    };
   }>
 > {
   const authResult = await requireOrgRole(input.orgId, "editor");
@@ -560,12 +639,23 @@ export async function forkBranch(input: {
 
   // neon-http has no transactions. Copy each table sequentially; on any
   // failure, delete inserted rows in reverse order and drop the branch row.
-  const tablesInOrder: EntityTable[] = [characters, locations, factions, scenes, timelineEvents];
+  const tablesInOrder: EntityTable[] = [
+    characters,
+    locations,
+    factions,
+    scenes,
+    timelineEvents,
+  ];
   const touched: EntityTable[] = [];
 
   try {
     for (const table of tablesInOrder) {
-      await copyEntityTable(table, input.sourceBranchId, newBranch.id, input.orgId);
+      await copyEntityTable(
+        table,
+        input.sourceBranchId,
+        newBranch.id,
+        input.orgId,
+      );
       touched.push(table);
     }
     return {

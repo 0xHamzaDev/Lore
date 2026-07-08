@@ -1,8 +1,10 @@
 "use client";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -18,17 +20,26 @@ import {
 } from "@lore/ui";
 import { ROUTES } from "@lore/utils";
 
-const schema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  name: string;
+  email: string;
+  password: string;
+};
 
 export function SignUpForm() {
   const t = useTranslations("Auth");
+  const tv = useTranslations("Validation");
   const router = useRouter();
+  const invitation = useSearchParams().get("invitation");
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, { message: tv("nameRequired") }),
+        email: z.string().email({ message: tv("emailInvalid") }),
+        password: z.string().min(8, { message: tv("passwordMin") }),
+      }),
+    [tv],
+  );
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "", password: "" },
@@ -43,17 +54,24 @@ export function SignUpForm() {
 
     if (result.error) {
       const msg =
-        result.error.code === "USER_ALREADY_EXISTS" ? t("errors.emailTaken") : t("errors.generic");
+        result.error.code === "USER_ALREADY_EXISTS"
+          ? t("errors.emailTaken")
+          : t("errors.generic");
       toast.error(msg);
       return;
     }
 
-    router.push(ROUTES.dashboard);
+    router.push(
+      invitation ? ROUTES.acceptInvitation(invitation) : ROUTES.dashboard,
+    );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -61,7 +79,11 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>{t("name")}</FormLabel>
               <FormControl>
-                <Input autoComplete="name" placeholder={t("namePlaceholder")} {...field} />
+                <Input
+                  autoComplete="name"
+                  placeholder={t("namePlaceholder")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,7 +125,11 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="mt-2 w-full" disabled={form.formState.isSubmitting}>
+        <Button
+          type="submit"
+          className="mt-2 w-full"
+          disabled={form.formState.isSubmitting}
+        >
           {form.formState.isSubmitting ? t("signingUp") : t("signUp")}
         </Button>
       </form>

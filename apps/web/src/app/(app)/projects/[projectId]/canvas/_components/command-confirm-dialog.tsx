@@ -22,7 +22,9 @@ export function CommandConfirmDialog({ edit, onConfirm, onCancel }: Props) {
   const t = useTranslations("CommandBar");
   const open = edit !== null;
   const deletes =
-    edit?.operations.filter((op): op is CommandEditDeleteOp => op.op === "delete") ?? [];
+    edit?.operations.filter(
+      (op): op is CommandEditDeleteOp => op.op === "delete",
+    ) ?? [];
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>

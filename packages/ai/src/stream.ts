@@ -31,7 +31,9 @@ export interface ModelTextResult {
  * caller (the agents server) can log a single ai_runs row per model call.
  * Reads ANTHROPIC_API_KEY from the environment via @ai-sdk/anthropic.
  */
-export async function streamModelText(opts: StreamModelTextOptions): Promise<ModelTextResult> {
+export async function streamModelText(
+  opts: StreamModelTextOptions,
+): Promise<ModelTextResult> {
   const start = Date.now();
 
   // Build params without explicit `undefined` keys — the AI SDK's option types
@@ -93,7 +95,9 @@ export interface StreamModelTextSSEResult {
  * `error` part is emitted (e.g. an SDK 400). The stream itself closes on
  * either path so consumers reading the stream see EOF either way.
  */
-export function streamModelTextSSE(opts: StreamModelTextOptions): StreamModelTextSSEResult {
+export function streamModelTextSSE(
+  opts: StreamModelTextOptions,
+): StreamModelTextSSEResult {
   const start = Date.now();
   const encoder = new TextEncoder();
 

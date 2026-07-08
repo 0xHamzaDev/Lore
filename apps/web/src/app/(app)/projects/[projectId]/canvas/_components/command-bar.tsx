@@ -17,7 +17,14 @@ interface Props {
   locale: "ar" | "en";
 }
 
-export function CommandBar({ open, onOpenChange, orgId, projectId, branchId, locale }: Props) {
+export function CommandBar({
+  open,
+  onOpenChange,
+  orgId,
+  projectId,
+  branchId,
+  locale,
+}: Props) {
   const t = useTranslations("CommandBar");
   const [instruction, setInstruction] = useState("");
   const cmd = useCommand({ orgId, projectId, branchId, locale });
@@ -60,7 +67,8 @@ export function CommandBar({ open, onOpenChange, orgId, projectId, branchId, loc
     }
   };
 
-  const pendingDestructiveEdit = cmd.state.kind === "destructive_pending" ? cmd.state.edit : null;
+  const pendingDestructiveEdit =
+    cmd.state.kind === "destructive_pending" ? cmd.state.edit : null;
 
   return (
     <>
@@ -86,7 +94,10 @@ export function CommandBar({ open, onOpenChange, orgId, projectId, branchId, loc
                 {t("stop")}
               </Button>
             ) : null}
-            <Button onClick={submit} disabled={cmd.state.kind === "loading" || !instruction.trim()}>
+            <Button
+              onClick={submit}
+              disabled={cmd.state.kind === "loading" || !instruction.trim()}
+            >
               {cmd.state.kind === "loading" ? t("loading") : t("submit")}
             </Button>
           </div>
@@ -124,18 +135,25 @@ function ResultPanel({
   const t = useTranslations("CommandBar");
   if (state.kind === "create_done") {
     return (
-      <p className="text-sm text-[#6b6b73]">{t("result.createDone", { count: state.count })}</p>
+      <p className="text-sm text-[#6b6b73]">
+        {t("result.createDone", { count: state.count })}
+      </p>
     );
   }
   if (state.kind === "edit_done") {
     return (
-      <p className="text-sm text-[#6b6b73]">{t("result.editDone", { patched: state.patched })}</p>
+      <p className="text-sm text-[#6b6b73]">
+        {t("result.editDone", { patched: state.patched })}
+      </p>
     );
   }
   if (state.kind === "delete_done") {
     return (
       <p className="text-sm text-[#6b6b73]">
-        {t("result.deleteDone", { deleted: state.deleted, failed: state.failed })}
+        {t("result.deleteDone", {
+          deleted: state.deleted,
+          failed: state.failed,
+        })}
       </p>
     );
   }
@@ -143,7 +161,11 @@ function ResultPanel({
     return <p className="text-sm text-[#6b6b73]">{t("result.agentQueued")}</p>;
   }
   if (state.kind === "unknown") {
-    return <p className="text-sm text-[#6b6b73]">{state.message || t("result.unknown")}</p>;
+    return (
+      <p className="text-sm text-[#6b6b73]">
+        {state.message || t("result.unknown")}
+      </p>
+    );
   }
   if (state.kind === "error") {
     return <p className="text-sm text-error">{t("errors.generic")}</p>;
@@ -153,7 +175,9 @@ function ResultPanel({
       <div className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-[#d9d9dd] bg-[#f5f5f7] p-3 text-sm">
         {query.text || t("loading")}
         {query.status === "error" ? (
-          <span className="block pt-2 text-error">{t("result.queryError")}</span>
+          <span className="block pt-2 text-error">
+            {t("result.queryError")}
+          </span>
         ) : null}
       </div>
     );

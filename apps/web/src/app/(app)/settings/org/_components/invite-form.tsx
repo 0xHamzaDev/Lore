@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,17 +24,25 @@ import {
 } from "@lore/ui";
 import { inviteMemberAction } from "../_actions";
 
-const schema = z.object({
-  email: z.string().email(),
-  role: z.enum(["editor", "viewer"]),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  email: string;
+  role: "editor" | "viewer";
+};
 
 export function InviteForm({ orgId }: { orgId: string }) {
   const t = useTranslations("Settings.org");
   const tCommon = useTranslations("Common");
+  const tv = useTranslations("Validation");
   const [open, setOpen] = useState(false);
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email({ message: tv("emailInvalid") }),
+        role: z.enum(["editor", "viewer"]),
+      }),
+    [tv],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -48,7 +56,7 @@ export function InviteForm({ orgId }: { orgId: string }) {
       setOpen(false);
       form.reset();
     } else {
-      toast.error(result.error);
+      toast.error(tCommon("error"));
     }
   }
 
@@ -65,7 +73,10 @@ export function InviteForm({ orgId }: { orgId: string }) {
           <DialogTitle>{t("invite")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 pt-2"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -73,7 +84,11 @@ export function InviteForm({ orgId }: { orgId: string }) {
                 <FormItem>
                   <FormLabel>{t("inviteEmail")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="team@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="team@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,7 +114,11 @@ export function InviteForm({ orgId }: { orgId: string }) {
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>

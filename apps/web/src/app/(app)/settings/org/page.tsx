@@ -56,12 +56,21 @@ export default async function OrgSettingsPage() {
           expiresAt: invitations.expiresAt,
         })
         .from(invitations)
-        .where(and(eq(invitations.organizationId, orgId), eq(invitations.status, "pending")))
+        .where(
+          and(
+            eq(invitations.organizationId, orgId),
+            eq(invitations.status, "pending"),
+          ),
+        )
     : [];
 
   return (
     <>
-      <Section title={t("general")} description={t("generalDescription")} bordered>
+      <Section
+        title={t("general")}
+        description={t("generalDescription")}
+        bordered
+      >
         <OrgGeneralForm
           orgId={orgId}
           orgName={fullOrg?.name ?? ""}
@@ -84,7 +93,10 @@ export default async function OrgSettingsPage() {
         />
       </Section>
 
-      <Section title={t("invitations")} description={t("invitationsDescription")}>
+      <Section
+        title={t("invitations")}
+        description={t("invitationsDescription")}
+      >
         <InvitationsList
           orgId={orgId}
           invitations={pendingInvites.map((i) => ({

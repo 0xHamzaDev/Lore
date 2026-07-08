@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, LayoutGrid, LogOut, Settings, User } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  LogOut,
+  Settings,
+  User,
+} from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { LoreMark } from "@/components/lore-mark";
 import { ROUTES } from "@lore/utils";
@@ -20,8 +27,16 @@ import {
 } from "@lore/ui";
 
 const NAV_ITEMS = [
-  { labelKey: "Nav.dashboard" as const, href: ROUTES.dashboard, Icon: LayoutGrid },
-  { labelKey: "Nav.settings" as const, href: ROUTES.settings.org, Icon: Settings },
+  {
+    labelKey: "Nav.dashboard" as const,
+    href: ROUTES.dashboard,
+    Icon: LayoutGrid,
+  },
+  {
+    labelKey: "Nav.settings" as const,
+    href: ROUTES.settings.org,
+    Icon: Settings,
+  },
 ];
 
 interface AppSidebarProps {
@@ -77,7 +92,8 @@ export function AppSidebar({ initialCollapsed }: AppSidebarProps) {
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         <ul className="flex flex-col gap-0.5">
           {NAV_ITEMS.map(({ labelKey, href, Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/");
+            const isActive =
+              pathname === href || pathname.startsWith(href + "/");
             const label = t(labelKey);
             return (
               <li key={href}>
@@ -115,9 +131,15 @@ export function AppSidebar({ initialCollapsed }: AppSidebarProps) {
           className="flex h-8 w-full items-center justify-center rounded-xs text-muted transition-colors hover:bg-soft-stone hover:text-primary"
         >
           {collapsed ? (
-            <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+            <ChevronRight
+              className="h-4 w-4 rtl:rotate-180"
+              aria-hidden="true"
+            />
           ) : (
-            <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+            <ChevronLeft
+              className="h-4 w-4 rtl:rotate-180"
+              aria-hidden="true"
+            />
           )}
         </button>
 
@@ -129,11 +151,15 @@ export function AppSidebar({ initialCollapsed }: AppSidebarProps) {
                 "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-soft-stone focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-blue",
                 collapsed ? "justify-center" : "justify-start",
               )}
-              title={collapsed ? (user?.name ?? user?.email ?? undefined) : undefined}
+              title={
+                collapsed ? (user?.name ?? user?.email ?? undefined) : undefined
+              }
             >
               <Avatar className="h-7 w-7 shrink-0">
                 <AvatarImage src={user?.image ?? undefined} />
-                <AvatarFallback className="text-[11px]">{initials}</AvatarFallback>
+                <AvatarFallback className="text-[11px]">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <span className="min-w-0 flex-1 truncate text-start text-ink">

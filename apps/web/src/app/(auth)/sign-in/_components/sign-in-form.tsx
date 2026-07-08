@@ -1,9 +1,11 @@
 "use client";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 import { signIn } from "@/lib/auth-client";
 import { toast } from "sonner";
 import {
@@ -18,16 +20,24 @@ import {
 } from "@lore/ui";
 import { ROUTES } from "@lore/utils";
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  email: string;
+  password: string;
+};
 
 export function SignInForm() {
   const t = useTranslations("Auth");
+  const tv = useTranslations("Validation");
   const router = useRouter();
+  const invitation = useSearchParams().get("invitation");
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email({ message: tv("emailInvalid") }),
+        password: z.string().min(1, { message: tv("passwordRequired") }),
+      }),
+    [tv],
+  );
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
@@ -44,12 +54,17 @@ export function SignInForm() {
       return;
     }
 
-    router.push(ROUTES.dashboard);
+    router.push(
+      invitation ? ROUTES.acceptInvitation(invitation) : ROUTES.dashboard,
+    );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -75,12 +90,12 @@ export function SignInForm() {
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>{t("password")}</FormLabel>
-                <a
-                  href="#"
+                <Link
+                  href={ROUTES.forgotPassword}
                   className="text-xs text-body-muted underline-offset-4 hover:text-primary hover:underline"
                 >
                   {t("forgotPassword")}
-                </a>
+                </Link>
               </div>
               <FormControl>
                 <Input
@@ -94,7 +109,11 @@ export function SignInForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="mt-2 w-full" disabled={form.formState.isSubmitting}>
+        <Button
+          type="submit"
+          className="mt-2 w-full"
+          disabled={form.formState.isSubmitting}
+        >
           {form.formState.isSubmitting ? t("signingIn") : t("signIn")}
         </Button>
       </form>

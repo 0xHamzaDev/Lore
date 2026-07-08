@@ -2,69 +2,69 @@
 
 ## Docs Index
 
-| root: `./docs` | |
-|---|---|
-| routing | `routing/file-based-routing.md`, `routing/navigation.md` |
-| data-fetching | `data-fetching/query-pattern.md` |
-| ui | `ui/design.md`, `ui/page-anatomy.md` |
-| database | `database/schema.md` |
-| server | `server/server-functions.md` |
-| features | `features/feature-module.md` |
+| root: `./docs` |                                                          |
+| -------------- | -------------------------------------------------------- |
+| routing        | `routing/file-based-routing.md`, `routing/navigation.md` |
+| data-fetching  | `data-fetching/query-pattern.md`                         |
+| ui             | `ui/design.md`, `ui/page-anatomy.md`                     |
+| database       | `database/schema.md`                                     |
+| server         | `server/server-functions.md`                             |
+| features       | `features/feature-module.md`                             |
 
 ## When to Read Which Doc
 
-| Task | Read |
-|---|---|
-| Adding a page / route | `routing/file-based-routing.md` → `ui/page-anatomy.md` → `routing/navigation.md` |
-| Adding data fetching | `data-fetching/query-pattern.md` → `features/feature-module.md` → `server/server-functions.md` |
-| Building UI | `ui/design.md` → `ui/page-anatomy.md` |
-| Database changes | `database/schema.md` → `server/server-functions.md` |
-| New feature end-to-end | `features/feature-module.md` → all of the above |
+| Task                   | Read                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Adding a page / route  | `routing/file-based-routing.md` → `ui/page-anatomy.md` → `routing/navigation.md`               |
+| Adding data fetching   | `data-fetching/query-pattern.md` → `features/feature-module.md` → `server/server-functions.md` |
+| Building UI            | `ui/design.md` → `ui/page-anatomy.md`                                                          |
+| Database changes       | `database/schema.md` → `server/server-functions.md`                                            |
+| New feature end-to-end | `features/feature-module.md` → all of the above                                                |
 
 ## Key Paths
 
-| Concern | Path |
-|---|---|
-| Next.js app | `apps/web/app/` |
-| Shared UI components | `packages/ui/src/` |
-| Drizzle schema | `packages/db/src/schema/` |
-| Drizzle queries | `packages/db/src/queries/` |
-| DB client | `packages/db/src/client.ts` |
-| Auth config | `packages/auth/src/` |
-| AI wrappers | `packages/ai/src/` (`streamModelText`) |
-| API gateway (Hono/Worker) | `apps/api/src/` |
-| Agents server (Node) | `apps/agents/src/` (`runAgent`, `/internal/agent-run`) |
-| AI proxy route handlers | `apps/web/src/app/api/ai/` |
-| Gateway token util | `packages/utils/src/gateway-token.ts` |
-| Shared utils | `packages/utils/src/` |
-| Route constants | `packages/utils/src/routes.ts` |
-| TanStack Query keys | `packages/utils/src/query-keys.ts` |
-| Shared types | `packages/utils/src/types.ts` |
-| Tailwind config | `packages/config/tailwind.config.ts` |
-| i18n messages (Arabic) | `apps/web/messages/ar.json` |
-| i18n messages (English) | `apps/web/messages/en.json` |
-| i18n navigation helpers | `apps/web/src/i18n/navigation.ts` |
-| Nav config | `apps/web/config/nav.ts` |
-| Middleware | `apps/web/middleware.ts` |
-| Migrations | `packages/db/migrations/` |
+| Concern                   | Path                                                   |
+| ------------------------- | ------------------------------------------------------ |
+| Next.js app               | `apps/web/app/`                                        |
+| Shared UI components      | `packages/ui/src/`                                     |
+| Drizzle schema            | `packages/db/src/schema/`                              |
+| Drizzle queries           | `packages/db/src/queries/`                             |
+| DB client                 | `packages/db/src/client.ts`                            |
+| Auth config               | `packages/auth/src/`                                   |
+| AI wrappers               | `packages/ai/src/` (`streamModelText`)                 |
+| API gateway (Hono/Worker) | `apps/api/src/`                                        |
+| Agents server (Node)      | `apps/agents/src/` (`runAgent`, `/internal/agent-run`) |
+| AI proxy route handlers   | `apps/web/src/app/api/ai/`                             |
+| Gateway token util        | `packages/utils/src/gateway-token.ts`                  |
+| Shared utils              | `packages/utils/src/`                                  |
+| Route constants           | `packages/utils/src/routes.ts`                         |
+| TanStack Query keys       | `packages/utils/src/query-keys.ts`                     |
+| Shared types              | `packages/utils/src/types.ts`                          |
+| Tailwind config           | `packages/config/tailwind.config.ts`                   |
+| i18n messages (Arabic)    | `apps/web/messages/ar.json`                            |
+| i18n messages (English)   | `apps/web/messages/en.json`                            |
+| i18n navigation helpers   | `apps/web/src/i18n/navigation.ts`                      |
+| Nav config                | `apps/web/config/nav.ts`                               |
+| Middleware                | `apps/web/middleware.ts`                               |
+| Migrations                | `packages/db/migrations/`                              |
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Monorepo | Turborepo + pnpm workspaces |
-| Language | TypeScript 5 |
-| Database | PostgreSQL via Neon (serverless) |
-| ORM | Drizzle ORM + drizzle-kit |
-| Auth | Better-Auth |
-| UI primitives | Shadcn/ui + Radix UI |
-| Styling | Tailwind CSS v4 |
-| Forms | react-hook-form + Zod |
-| Server state | TanStack Query v5 |
-| AI | Vercel AI SDK + Anthropic |
-| i18n / RTL | next-intl (ar default, en) |
-| ID generation | cuid2 |
+| Layer         | Choice                           |
+| ------------- | -------------------------------- |
+| Framework     | Next.js 15 (App Router)          |
+| Monorepo      | Turborepo + pnpm workspaces      |
+| Language      | TypeScript 5                     |
+| Database      | PostgreSQL via Neon (serverless) |
+| ORM           | Drizzle ORM + drizzle-kit        |
+| Auth          | Better-Auth                      |
+| UI primitives | Shadcn/ui + Radix UI             |
+| Styling       | Tailwind CSS v4                  |
+| Forms         | react-hook-form + Zod            |
+| Server state  | TanStack Query v5                |
+| AI            | Vercel AI SDK + Anthropic        |
+| i18n / RTL    | next-intl (ar default, en)       |
+| ID generation | cuid2                            |
 
 ## Rules
 

@@ -38,7 +38,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const rawBody = await request.text();
-  const expected = createHmac("sha256", env.MOYASAR_WEBHOOK_SECRET).update(rawBody).digest("hex");
+  const expected = createHmac("sha256", env.MOYASAR_WEBHOOK_SECRET)
+    .update(rawBody)
+    .digest("hex");
 
   const sigBuf = Buffer.from(signature, "hex");
   const expBuf = Buffer.from(expected, "hex");
@@ -104,7 +106,10 @@ export async function POST(request: Request): Promise<Response> {
         break;
 
       default:
-        return Response.json({ ok: true, ignored: event.type }, { status: 200 });
+        return Response.json(
+          { ok: true, ignored: event.type },
+          { status: 200 },
+        );
     }
   } catch (err) {
     console.error("[moyasar webhook]", err);

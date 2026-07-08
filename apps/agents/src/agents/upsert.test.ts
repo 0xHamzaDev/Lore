@@ -59,7 +59,12 @@ describe("upsertFindings", () => {
       agentType: "continuity",
       aiRunId: "r1",
       payload: [
-        { entityId: "c1", entityType: "character", severity: "error", message: "year mismatch xx" },
+        {
+          entityId: "c1",
+          entityType: "character",
+          severity: "error",
+          message: "year mismatch xx",
+        },
       ],
     });
     expect(insertCalls).toHaveLength(1);
@@ -83,7 +88,12 @@ describe("upsertFindings", () => {
       agentType: "continuity",
       aiRunId: "r1",
       payload: [
-        { entityId: "c1", entityType: "character", severity: "error", message: "year mismatch xx" },
+        {
+          entityId: "c1",
+          entityType: "character",
+          severity: "error",
+          message: "year mismatch xx",
+        },
       ],
     });
     expect(insertCalls).toHaveLength(0);
@@ -107,7 +117,12 @@ describe("upsertFindings", () => {
       agentType: "continuity",
       aiRunId: "r1",
       payload: [
-        { entityId: "c1", entityType: "character", severity: "error", message: "year mismatch xx" },
+        {
+          entityId: "c1",
+          entityType: "character",
+          severity: "error",
+          message: "year mismatch xx",
+        },
       ],
     });
     expect(insertCalls).toHaveLength(0);
@@ -132,7 +147,12 @@ describe("upsertFindings", () => {
       agentType: "continuity",
       aiRunId: "r1",
       payload: [
-        { entityId: "c1", entityType: "character", severity: "error", message: "year mismatch xx" },
+        {
+          entityId: "c1",
+          entityType: "character",
+          severity: "error",
+          message: "year mismatch xx",
+        },
       ],
     });
     expect(insertCalls).toHaveLength(0);
@@ -166,6 +186,8 @@ describe("upsertFindings", () => {
     });
     // Continuity stale row → resolved. Pacing row of a different agent_type → NOT touched.
     expect(updateCalls).toHaveLength(1);
-    expect((updateCalls[0]!.setArg as { status: string }).status).toBe("resolved");
+    expect((updateCalls[0]!.setArg as { status: string }).status).toBe(
+      "resolved",
+    );
   });
 });

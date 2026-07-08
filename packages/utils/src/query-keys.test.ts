@@ -13,11 +13,17 @@ describe("QK.org.members", () => {
 
 describe("QK.org.invitations", () => {
   it("returns a stable key tuple for a given org id", () => {
-    expect(QK.org.invitations("org_123")).toEqual(["org", "org_123", "invitations"]);
+    expect(QK.org.invitations("org_123")).toEqual([
+      "org",
+      "org_123",
+      "invitations",
+    ]);
   });
 
   it("produces different keys for different org ids", () => {
-    expect(QK.org.invitations("org_a")).not.toEqual(QK.org.invitations("org_b"));
+    expect(QK.org.invitations("org_a")).not.toEqual(
+      QK.org.invitations("org_b"),
+    );
   });
 });
 
@@ -37,7 +43,9 @@ describe("QK.projects.detail", () => {
   });
 
   it("produces different keys for different project ids", () => {
-    expect(QK.projects.detail("proj_a")).not.toEqual(QK.projects.detail("proj_b"));
+    expect(QK.projects.detail("proj_a")).not.toEqual(
+      QK.projects.detail("proj_b"),
+    );
   });
 });
 
@@ -51,7 +59,9 @@ describe("QK.entities.list", () => {
   });
 
   it("produces different keys for different types", () => {
-    expect(QK.entities.list("b", "character")).not.toEqual(QK.entities.list("b", "location"));
+    expect(QK.entities.list("b", "character")).not.toEqual(
+      QK.entities.list("b", "location"),
+    );
   });
 });
 

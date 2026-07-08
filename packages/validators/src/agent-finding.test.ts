@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { agentFindingSchema, agentFindingsPayloadSchema } from "./agent-finding";
+import {
+  agentFindingSchema,
+  agentFindingsPayloadSchema,
+} from "./agent-finding";
 
 describe("agentFindingSchema", () => {
   it("parses a per-entity finding", () => {

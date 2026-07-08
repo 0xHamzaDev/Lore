@@ -1,6 +1,15 @@
 import { requireAuth } from "@lore/auth/guard";
 import { requireSubscription } from "@lore/auth/subscription";
-import { db, projects, members, branches, eq, and, isNull, asc } from "@lore/db";
+import {
+  db,
+  projects,
+  members,
+  branches,
+  eq,
+  and,
+  isNull,
+  asc,
+} from "@lore/db";
 import { notFound } from "next/navigation";
 import { CanvasProvider } from "./_components/canvas-provider";
 import { CanvasApp } from "./_components/canvas-app";
@@ -11,7 +20,10 @@ interface CanvasPageProps {
   searchParams: Promise<{ branchId?: string; wizard?: string }>;
 }
 
-export default async function CanvasPage({ params, searchParams }: CanvasPageProps) {
+export default async function CanvasPage({
+  params,
+  searchParams,
+}: CanvasPageProps) {
   const { projectId } = await params;
   const { branchId: requestedBranchId, wizard } = await searchParams;
   const session = await requireAuth();
@@ -27,19 +39,30 @@ export default async function CanvasPage({ params, searchParams }: CanvasPagePro
   const membership = await db
     .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.organizationId, project[0].orgId), eq(members.userId, session.user.id)))
+    .where(
+      and(
+        eq(members.organizationId, project[0].orgId),
+        eq(members.userId, session.user.id),
+      ),
+    )
     .limit(1);
 
   // Mirror /api/liveblocks-auth: allow either explicit member row OR active-org owner.
   // Keeps personal-org owners (whose members row may be missing in edge cases) from being 404'd.
   const isMember = Boolean(membership[0]);
-  const isActiveOrgOwner = project[0].orgId === session.session.activeOrganizationId;
+  const isActiveOrgOwner =
+    project[0].orgId === session.session.activeOrganizationId;
   if (!isMember && !isActiveOrgOwner) notFound();
 
   const branchRows = await db
     .select({ id: branches.id, name: branches.name })
     .from(branches)
-    .where(and(eq(branches.projectId, project[0].id), eq(branches.orgId, project[0].orgId)))
+    .where(
+      and(
+        eq(branches.projectId, project[0].id),
+        eq(branches.orgId, project[0].orgId),
+      ),
+    )
     .orderBy(asc(branches.createdAt));
 
   if (!branchRows[0]) notFound();
@@ -47,7 +70,8 @@ export default async function CanvasPage({ params, searchParams }: CanvasPagePro
   // Resolve the active branch from ?branchId=. An absent or unknown id (e.g. a
   // tampered URL, or a branch from another project) falls back to main, which
   // is branchRows[0] because main is created first and the list is createdAt-asc.
-  const currentBranch = branchRows.find((b) => b.id === requestedBranchId) ?? branchRows[0];
+  const currentBranch =
+    branchRows.find((b) => b.id === requestedBranchId) ?? branchRows[0];
   const roomId = `${project[0].id}:${currentBranch.id}`;
 
   // Resolve the plan server-side so free users hit the upgrade modal on the wand

@@ -18,7 +18,9 @@ type FormFieldContextValue<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = { name: TName };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
+const FormFieldContext = React.createContext<FormFieldContextValue>(
+  {} as FormFieldContextValue,
+);
 
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
@@ -38,11 +40,12 @@ const useFormField = () => {
   return { name: fieldContext.name, ...fieldState };
 };
 
-const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("space-y-2", className)} {...props} />
-  ),
-);
+const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("space-y-2", className)} {...props} />
+));
 FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
@@ -60,12 +63,13 @@ const FormLabel = React.forwardRef<
 });
 FormLabel.displayName = "FormLabel";
 
-const FormControl = React.forwardRef<React.ElementRef<"div">, React.HTMLAttributes<HTMLDivElement>>(
-  ({ ...props }, ref) => {
-    const { error } = useFormField();
-    return <div ref={ref} aria-invalid={!!error} {...props} />;
-  },
-);
+const FormControl = React.forwardRef<
+  React.ElementRef<"div">,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ ...props }, ref) => {
+  const { error } = useFormField();
+  return <div ref={ref} aria-invalid={!!error} {...props} />;
+});
 FormControl.displayName = "FormControl";
 
 const FormMessage = React.forwardRef<
@@ -83,4 +87,12 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = "FormMessage";
 
-export { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, useFormField };
+export {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  useFormField,
+};

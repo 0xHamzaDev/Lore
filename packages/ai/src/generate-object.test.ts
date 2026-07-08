@@ -11,7 +11,9 @@ vi.mock("@ai-sdk/anthropic", () => ({
 import { generateObject } from "ai";
 import { generateModelObject } from "./generate-object";
 
-const generateObjectMock = generateObject as unknown as ReturnType<typeof vi.fn>;
+const generateObjectMock = generateObject as unknown as ReturnType<
+  typeof vi.fn
+>;
 
 describe("generateModelObject", () => {
   beforeEach(() => {
@@ -60,7 +62,11 @@ describe("generateModelObject", () => {
       object: {},
       usage: { promptTokens: 0, completionTokens: 0 },
     });
-    await generateModelObject({ model: "m", schema: z.object({}), prompt: "p" });
+    await generateModelObject({
+      model: "m",
+      schema: z.object({}),
+      prompt: "p",
+    });
     const call = generateObjectMock.mock.calls[0]?.[0];
     expect(call?.maxTokens).toBe(1024);
     expect(call?.abortSignal).toBeInstanceOf(AbortSignal);

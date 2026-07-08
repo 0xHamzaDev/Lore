@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
+    "./active-org": "./src/active-org.ts",
     "./guard": "./src/guard.ts",
     "./permissions": "./src/permissions.ts",
     "./subscription": "./src/subscription.ts"

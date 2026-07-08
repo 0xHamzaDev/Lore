@@ -11,7 +11,9 @@ const UpdateProfileSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
 });
 
-export async function updateProfileAction(input: unknown): Promise<ActionResult<{ name: string }>> {
+export async function updateProfileAction(
+  input: unknown,
+): Promise<ActionResult<{ name: string }>> {
   try {
     await requireAuth();
     const data = UpdateProfileSchema.parse(input);

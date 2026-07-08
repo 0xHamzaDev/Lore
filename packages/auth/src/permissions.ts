@@ -23,10 +23,15 @@ export async function requireOrgRole(
       query: { organizationId: orgId },
     });
 
-    const membership = fullOrg?.members.find((m) => m.userId === session.user.id);
+    const membership = fullOrg?.members.find(
+      (m) => m.userId === session.user.id,
+    );
 
     if (!membership) {
-      return { success: false, error: "You are not a member of this organization." };
+      return {
+        success: false,
+        error: "You are not a member of this organization.",
+      };
     }
 
     const userRole = membership.role as OrgRole;

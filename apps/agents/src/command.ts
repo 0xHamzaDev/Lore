@@ -1,5 +1,13 @@
-import { generateModelObject, MODELS, type GenerateModelObjectResult } from "@lore/ai";
-import { commandIntentSchema, type CommandIntent, type CompactEntity } from "@lore/validators";
+import {
+  generateModelObject,
+  MODELS,
+  type GenerateModelObjectResult,
+} from "@lore/ai";
+import {
+  commandIntentSchema,
+  type CommandIntent,
+  type CompactEntity,
+} from "@lore/validators";
 
 export interface CommandRouterPayload {
   orgId?: string | null;
@@ -55,7 +63,8 @@ export async function runCommandRouter(
   payload: CommandRouterPayload,
 ): Promise<CommandRouterResult> {
   const { system, prompt } = buildCommandRouterPrompt(payload);
-  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model =
+    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   return await generateModelObject<CommandIntent>({
     model,
     schema: commandIntentSchema,

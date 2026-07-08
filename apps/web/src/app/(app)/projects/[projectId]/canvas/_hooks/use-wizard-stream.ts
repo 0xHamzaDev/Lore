@@ -38,7 +38,8 @@ function parseFrame(frame: string): { event: string; data: string } {
   let data = "";
   for (const line of frame.split("\n")) {
     if (line.startsWith("event:")) event = line.slice("event:".length).trim();
-    else if (line.startsWith("data:")) data += line.slice("data:".length).trim();
+    else if (line.startsWith("data:"))
+      data += line.slice("data:".length).trim();
   }
   return { event, data };
 }

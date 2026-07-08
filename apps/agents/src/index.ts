@@ -1,8 +1,15 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import { createNdjsonParser } from "@lore/ai";
 import { wizardEntitySchema } from "@lore/validators";
 import { runAgent, type AgentRunInput } from "./run-agent";
-import { runGenerateFieldStream, type GenerateFieldPayload } from "./generate-field";
+import {
+  runGenerateFieldStream,
+  type GenerateFieldPayload,
+} from "./generate-field";
 import { runWizardStream, type WizardPayload } from "./wizard";
 import { runQueryStream, type QueryPayload } from "./query";
 import { runBackgroundAgents } from "./agents/background";
@@ -63,7 +70,14 @@ async function handleAgentStream(
       status: "success",
       accepted: false,
     });
-    res.write(sseFrame("done", { aiRunId, usage: meta.usage, latencyMs: meta.latencyMs, model }));
+    res.write(
+      sseFrame("done", {
+        aiRunId,
+        usage: meta.usage,
+        latencyMs: meta.latencyMs,
+        model,
+      }),
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await logAiRun({
@@ -85,7 +99,10 @@ async function handleAgentStream(
 // each entity, and emits one `entity_created` SSE frame per valid entity. Logs a
 // single ai_runs row (run_type='wizard') at stream end and emits `wizard_complete`
 // (or `error`). Never writes entity rows — the browser persists them.
-async function handleWizardStream(payload: WizardPayload, res: ServerResponse): Promise<void> {
+async function handleWizardStream(
+  payload: WizardPayload,
+  res: ServerResponse,
+): Promise<void> {
   const orgId = payload.orgId ?? null;
   const projectId = payload.projectId ?? null;
   const start = Date.now();
@@ -137,7 +154,12 @@ async function handleWizardStream(payload: WizardPayload, res: ServerResponse): 
       status: "success",
     });
     res.write(
-      sseFrame("wizard_complete", { count, usage: meta.usage, latencyMs: meta.latencyMs, model }),
+      sseFrame("wizard_complete", {
+        count,
+        usage: meta.usage,
+        latencyMs: meta.latencyMs,
+        model,
+      }),
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -159,7 +181,10 @@ async function handleWizardStream(payload: WizardPayload, res: ServerResponse): 
 // compact entity list. Logs a single ai_runs row (run_type='query') at stream
 // end. Mirrors handleAgentStream (generate-field) — same SSE wire format:
 // `delta` frames + `done` (or `error`) terminal frame.
-async function handleQueryStream(payload: QueryPayload, res: ServerResponse): Promise<void> {
+async function handleQueryStream(
+  payload: QueryPayload,
+  res: ServerResponse,
+): Promise<void> {
   const orgId = payload.orgId ?? null;
   const projectId = payload.projectId ?? null;
   const start = Date.now();
@@ -197,7 +222,9 @@ async function handleQueryStream(payload: QueryPayload, res: ServerResponse): Pr
       latencyMs: meta.latencyMs,
       status: "success",
     });
-    res.write(sseFrame("done", { usage: meta.usage, latencyMs: meta.latencyMs, model }));
+    res.write(
+      sseFrame("done", { usage: meta.usage, latencyMs: meta.latencyMs, model }),
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await logAiRun({
@@ -283,7 +310,10 @@ const server = createServer((req, res) => {
           branchId?: string;
         };
         if (!body?.orgId || !body?.projectId || !body?.branchId) {
-          sendJson(res, 400, { success: false, error: "missing orgId/projectId/branchId" });
+          sendJson(res, 400, {
+            success: false,
+            error: "missing orgId/projectId/branchId",
+          });
           return;
         }
         const data = await runBackgroundAgents({
@@ -319,7 +349,10 @@ const server = createServer((req, res) => {
       // never throws — failures are emitted as an SSE `error` event. Command
       // streaming lands in Phase 9.
       if (body?.type === "generate-field") {
-        await handleAgentStream((body.payload ?? {}) as GenerateFieldPayload, res);
+        await handleAgentStream(
+          (body.payload ?? {}) as GenerateFieldPayload,
+          res,
+        );
         return;
       }
       if (body?.type === "wizard") {
@@ -341,6 +374,8 @@ const server = createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`[agents] listening on http://localhost:${PORT}`);
   if (!INTERNAL_AGENT_TOKEN) {
-    console.warn("[agents] INTERNAL_AGENT_TOKEN is not set — all /internal requests will 401");
+    console.warn(
+      "[agents] INTERNAL_AGENT_TOKEN is not set — all /internal requests will 401",
+    );
   }
 });

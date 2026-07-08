@@ -3,7 +3,14 @@
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage, Badge, Button, EmptyState } from "@lore/ui";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Button,
+  EmptyState,
+} from "@lore/ui";
 import { Users } from "lucide-react";
 import type { OrgRole } from "@lore/db";
 import { removeMemberAction, updateMemberRoleAction } from "../_actions";
@@ -22,8 +29,14 @@ interface MembersListProps {
   currentUserRole: OrgRole;
 }
 
-export function MembersList({ orgId, members, currentUserId, currentUserRole }: MembersListProps) {
+export function MembersList({
+  orgId,
+  members,
+  currentUserId,
+  currentUserRole,
+}: MembersListProps) {
   const t = useTranslations("Settings.org");
+  const tCommon = useTranslations("Common");
   const [isPending, startTransition] = useTransition();
   const isOwner = currentUserRole === "owner";
 
@@ -32,7 +45,7 @@ export function MembersList({ orgId, members, currentUserId, currentUserRole }: 
     startTransition(async () => {
       const result = await removeMemberAction({ orgId, memberId });
       if (result.success) toast.success(t("memberRemoved"));
-      else toast.error(result.error);
+      else toast.error(tCommon("error"));
     });
   }
 
@@ -40,7 +53,7 @@ export function MembersList({ orgId, members, currentUserId, currentUserRole }: 
     startTransition(async () => {
       const result = await updateMemberRoleAction({ orgId, memberId, role });
       if (result.success) toast.success(t("roleUpdated"));
-      else toast.error(result.error);
+      else toast.error(tCommon("error"));
     });
   }
 
@@ -66,21 +79,27 @@ export function MembersList({ orgId, members, currentUserId, currentUserRole }: 
           <li key={member.id} className="flex items-center gap-3 px-4 py-3">
             <Avatar className="h-8 w-8">
               <AvatarImage src={member.user.image ?? undefined} />
-              <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+              <AvatarFallback className="text-[10px]">
+                {initials}
+              </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-primary">
                 {member.user.name || member.user.email}
               </p>
-              <p className="truncate text-xs text-body-muted">{member.user.email}</p>
+              <p className="truncate text-xs text-body-muted">
+                {member.user.email}
+              </p>
             </div>
 
             {canEdit ? (
               <select
                 value={member.role}
                 disabled={isPending}
-                onChange={(e) => handleRoleChange(member.id, e.target.value as OrgRole)}
+                onChange={(e) =>
+                  handleRoleChange(member.id, e.target.value as OrgRole)
+                }
                 className="rounded-xs border border-border-light bg-canvas px-2 py-1 text-xs text-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="editor">{t("roles.editor")}</option>

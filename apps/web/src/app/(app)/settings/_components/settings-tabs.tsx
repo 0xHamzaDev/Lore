@@ -31,7 +31,9 @@ export function SettingsTabs() {
             aria-selected={isActive}
             className={cn(
               "relative inline-flex h-9 items-center px-3 text-sm transition-colors",
-              isActive ? "text-primary font-medium" : "text-body-muted hover:text-primary",
+              isActive
+                ? "text-primary font-medium"
+                : "text-body-muted hover:text-primary",
             )}
           >
             {t(labelKey)}

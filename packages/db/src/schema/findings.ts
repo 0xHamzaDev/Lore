@@ -38,7 +38,9 @@ export const agentFindings = pgTable(
       enum: ["character", "location", "faction", "scene", "timeline_event"],
     }),
 
-    severity: text("severity", { enum: ["error", "warning", "info"] }).notNull(),
+    severity: text("severity", {
+      enum: ["error", "warning", "info"],
+    }).notNull(),
     message: text("message").notNull(),
 
     status: text("status", { enum: ["open", "resolved", "dismissed"] })
@@ -47,7 +49,9 @@ export const agentFindings = pgTable(
     resolvedAt: timestamp("resolved_at"),
 
     // Audit link to the model call that produced (or last touched) this row.
-    aiRunId: text("ai_run_id").references(() => aiRuns.id, { onDelete: "set null" }),
+    aiRunId: text("ai_run_id").references(() => aiRuns.id, {
+      onDelete: "set null",
+    }),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

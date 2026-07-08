@@ -122,6 +122,11 @@ export type Faction = typeof factions.$inferSelect;
 export type Scene = typeof scenes.$inferSelect;
 export type TimelineEvent = typeof timelineEvents.$inferSelect;
 
-export type EntityType = "character" | "location" | "faction" | "scene" | "timeline_event";
+export type EntityType =
+  | "character"
+  | "location"
+  | "faction"
+  | "scene"
+  | "timeline_event";
 
 export type AnyEntity = Character | Location | Faction | Scene | TimelineEvent;

@@ -12,12 +12,18 @@ export async function callAgentsBackground(input: {
   const token = await signGatewayToken(env.API_GATEWAY_SECRET, 120);
   const upstream = await fetch(`${env.API_GATEWAY_URL}/agent/run-background`, {
     method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(input),
   });
   if (!upstream.ok) {
     const text = await upstream.text();
-    return { success: false, error: `gateway ${upstream.status}: ${text.slice(0, 200)}` };
+    return {
+      success: false,
+      error: `gateway ${upstream.status}: ${text.slice(0, 200)}`,
+    };
   }
   return { success: true };
 }

@@ -8,7 +8,13 @@ import { publishSeverityMap } from "./findings-store";
 export interface FindingRow {
   id: string;
   entityId: string | null;
-  entityType: "character" | "location" | "faction" | "scene" | "timeline_event" | null;
+  entityType:
+    | "character"
+    | "location"
+    | "faction"
+    | "scene"
+    | "timeline_event"
+    | null;
   agentType: "continuity" | "pacing" | "dialogue" | "verification";
   severity: "error" | "warning" | "info";
   message: string;

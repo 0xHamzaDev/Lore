@@ -42,8 +42,13 @@ export function useStorageStore(): UseStorageStoreResult {
   // The casts work around tldraw's stricter constructor generics under exactOptionalPropertyTypes.
   const [store] = useState<TLStore>(() =>
     createTLStore({
-      shapeUtils: [...(defaultShapeUtils as readonly TLAnyShapeUtilConstructor[]), EntityShapeUtil],
-      bindingUtils: [...(defaultBindingUtils as readonly TLAnyBindingUtilConstructor[])],
+      shapeUtils: [
+        ...(defaultShapeUtils as readonly TLAnyShapeUtilConstructor[]),
+        EntityShapeUtil,
+      ],
+      bindingUtils: [
+        ...(defaultBindingUtils as readonly TLAnyBindingUtilConstructor[]),
+      ],
     }),
   );
 
@@ -57,7 +62,12 @@ export function useStorageStore(): UseStorageStoreResult {
   const putRecord = useMutation(({ storage }, record: TLRecord) => {
     storage
       .get("records")
-      .set(record.id, record as unknown as Parameters<ReturnType<typeof storage.get>["set"]>[1]);
+      .set(
+        record.id,
+        record as unknown as Parameters<
+          ReturnType<typeof storage.get>["set"]
+        >[1],
+      );
   }, []);
 
   // Mutation that deletes a record from the Liveblocks LiveMap.
@@ -93,11 +103,14 @@ export function useStorageStore(): UseStorageStoreResult {
           try {
             store.put([record], "initialize");
           } catch (err) {
-            console.warn("[useStorageStore] skipping malformed record on seed", {
-              recordId: (record as { id?: string }).id,
-              recordType: (record as { typeName?: string }).typeName,
-              error: err instanceof Error ? err.message : err,
-            });
+            console.warn(
+              "[useStorageStore] skipping malformed record on seed",
+              {
+                recordId: (record as { id?: string }).id,
+                recordType: (record as { typeName?: string }).typeName,
+                error: err instanceof Error ? err.message : err,
+              },
+            );
           }
         }
       });
@@ -105,6 +118,19 @@ export function useStorageStore(): UseStorageStoreResult {
 
     setLoadingState("ready");
   }, [liveblocksRecords, store]);
+
+  // ── Connection timeout guard ───────────────────────────────────────────────
+  // useStorage blocks until the Liveblocks room connects. If auth fails, the
+  // public key is wrong, or the network is down, `liveblocksRecords` never
+  // arrives and the canvas would spin forever. After a grace period, surface an
+  // error the UI can recover from (reload) instead of an infinite spinner.
+  useEffect(() => {
+    if (loadingState !== "loading") return;
+    const timer = setTimeout(() => {
+      setLoadingState((s) => (s === "loading" ? "error" : s));
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [loadingState]);
 
   // ── Step 2: Subscribe to local store changes → push to Liveblocks ──────────
   //

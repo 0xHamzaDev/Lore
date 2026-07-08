@@ -63,13 +63,22 @@ export async function POST(req: Request): Promise<Response> {
 
   const entities = await loadCompactEntities(orgId, branchId);
   const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
-  const payload = { question, entities, locale: locale ?? "en", orgId, projectId };
+  const payload = {
+    question,
+    entities,
+    locale: locale ?? "en",
+    orgId,
+    projectId,
+  };
 
   let upstream: Response;
   try {
     upstream = await fetch(`${env.API_GATEWAY_URL}/agent/query`, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     });
   } catch (err) {
@@ -84,7 +93,10 @@ export async function POST(req: Request): Promise<Response> {
 
   return new Response(upstream.body, {
     status: 200,
-    headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
   });
 }
 
@@ -92,11 +104,17 @@ function sseErrorFrame(message: string): Response {
   const frame = `event: error\ndata: ${JSON.stringify({ message })}\n\n`;
   return new Response(frame, {
     status: 200,
-    headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
   });
 }
 
-async function loadCompactEntities(orgId: string, branchId: string): Promise<CompactEntity[]> {
+async function loadCompactEntities(
+  orgId: string,
+  branchId: string,
+): Promise<CompactEntity[]> {
   const [chars, locs, facs, scns, tls] = await Promise.all([
     db
       .select({ id: characters.id, name: characters.name, bio: characters.bio })
@@ -109,7 +127,11 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
         ),
       ),
     db
-      .select({ id: locations.id, name: locations.name, description: locations.description })
+      .select({
+        id: locations.id,
+        name: locations.name,
+        description: locations.description,
+      })
       .from(locations)
       .where(
         and(
@@ -119,15 +141,29 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
         ),
       ),
     db
-      .select({ id: factions.id, name: factions.name, description: factions.description })
+      .select({
+        id: factions.id,
+        name: factions.name,
+        description: factions.description,
+      })
       .from(factions)
       .where(
-        and(eq(factions.orgId, orgId), eq(factions.branchId, branchId), isNull(factions.deletedAt)),
+        and(
+          eq(factions.orgId, orgId),
+          eq(factions.branchId, branchId),
+          isNull(factions.deletedAt),
+        ),
       ),
     db
       .select({ id: scenes.id, title: scenes.title, summary: scenes.summary })
       .from(scenes)
-      .where(and(eq(scenes.orgId, orgId), eq(scenes.branchId, branchId), isNull(scenes.deletedAt))),
+      .where(
+        and(
+          eq(scenes.orgId, orgId),
+          eq(scenes.branchId, branchId),
+          isNull(scenes.deletedAt),
+        ),
+      ),
     db
       .select({
         id: timelineEvents.id,
@@ -149,16 +185,36 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
     out.push({ id: r.id, type: "character", name: r.name, ...withHint(r.bio) });
   }
   for (const r of locs) {
-    out.push({ id: r.id, type: "location", name: r.name, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "location",
+      name: r.name,
+      ...withHint(r.description),
+    });
   }
   for (const r of facs) {
-    out.push({ id: r.id, type: "faction", name: r.name, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "faction",
+      name: r.name,
+      ...withHint(r.description),
+    });
   }
   for (const r of scns) {
-    out.push({ id: r.id, type: "scene", name: r.title, ...withHint(r.summary) });
+    out.push({
+      id: r.id,
+      type: "scene",
+      name: r.title,
+      ...withHint(r.summary),
+    });
   }
   for (const r of tls) {
-    out.push({ id: r.id, type: "timeline_event", name: r.title, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "timeline_event",
+      name: r.title,
+      ...withHint(r.description),
+    });
   }
   return out;
 }

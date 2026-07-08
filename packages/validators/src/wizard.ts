@@ -56,7 +56,10 @@ export const wizardEntitySchema = z.discriminatedUnion("entityType", [
   z.object({ entityType: z.literal("location"), data: wizardLocationData }),
   z.object({ entityType: z.literal("faction"), data: wizardFactionData }),
   z.object({ entityType: z.literal("scene"), data: wizardSceneData }),
-  z.object({ entityType: z.literal("timeline_event"), data: wizardTimelineEventData }),
+  z.object({
+    entityType: z.literal("timeline_event"),
+    data: wizardTimelineEventData,
+  }),
 ]);
 
 export type WizardEntity = z.infer<typeof wizardEntitySchema>;

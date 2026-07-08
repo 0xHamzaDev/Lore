@@ -4,8 +4,24 @@ import "tldraw/tldraw.css";
 
 import { createId } from "@paralleldrive/cuid2";
 import type { EntityType } from "@lore/db";
-import { Clock, Film, ListChecks, MapPin, Shield, Sparkles, User, Wand2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  Clock,
+  Film,
+  ListChecks,
+  MapPin,
+  Shield,
+  Sparkles,
+  User,
+  Wand2,
+  WifiOff,
+} from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Tldraw } from "tldraw";
 import type { Editor, TLComponents, TLShapeId } from "tldraw";
@@ -45,11 +61,23 @@ export interface CanvasAppProps {
 // ─── Entity toolbar config ────────────────────────────────────────────────────
 
 const ENTITY_TYPE_KEYS = [
-  { type: "character" as EntityType, tKey: "entityTypes.character", Icon: User },
-  { type: "location" as EntityType, tKey: "entityTypes.location", Icon: MapPin },
+  {
+    type: "character" as EntityType,
+    tKey: "entityTypes.character",
+    Icon: User,
+  },
+  {
+    type: "location" as EntityType,
+    tKey: "entityTypes.location",
+    Icon: MapPin,
+  },
   { type: "faction" as EntityType, tKey: "entityTypes.faction", Icon: Shield },
   { type: "scene" as EntityType, tKey: "entityTypes.scene", Icon: Film },
-  { type: "timeline_event" as EntityType, tKey: "entityTypes.timelineEvent", Icon: Clock },
+  {
+    type: "timeline_event" as EntityType,
+    tKey: "entityTypes.timelineEvent",
+    Icon: Clock,
+  },
 ] as const;
 
 // Disable tldraw's built-in context menu — Phase 3.5 replaces it with the
@@ -79,7 +107,10 @@ const AI_ACTION_FIELDS: Record<EntityType, { key: string; tKey: string }[]> = {
 
 // ─── Helper to derive displayName from an AnyEntity-like record ───────────────
 
-function getEntityDisplayName(entity: Record<string, unknown>, type: EntityType): string {
+function getEntityDisplayName(
+  entity: Record<string, unknown>,
+  type: EntityType,
+): string {
   if (type === "scene" || type === "timeline_event") {
     return typeof entity.title === "string" ? entity.title : "Untitled";
   }
@@ -108,7 +139,10 @@ export function CanvasApp(props: CanvasAppProps) {
       if (!isCmdK) return;
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
-      const editable = tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable === true;
+      const editable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        target?.isContentEditable === true;
       if (editable) return;
       e.preventDefault();
       setCommandBarOpen(true);
@@ -131,7 +165,12 @@ export function CanvasApp(props: CanvasAppProps) {
 
   const handleResetRoom = useCallback(() => {
     if (!isDev) return;
-    if (!window.confirm("Reset room? This deletes all shapes in this room (dev-only).")) return;
+    if (
+      !window.confirm(
+        "Reset room? This deletes all shapes in this room (dev-only).",
+      )
+    )
+      return;
     clearRoomRecords();
     window.location.reload();
   }, [isDev, clearRoomRecords]);
@@ -141,7 +180,8 @@ export function CanvasApp(props: CanvasAppProps) {
 
   // Track selected entity shape
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-  const [selectedEntityType, setSelectedEntityType] = useState<EntityType | null>(null);
+  const [selectedEntityType, setSelectedEntityType] =
+    useState<EntityType | null>(null);
 
   // ── Editor mount ─────────────────────────────────────────────────────────────
 
@@ -173,6 +213,21 @@ export function CanvasApp(props: CanvasAppProps) {
     return unsub; // ← React uses this as cleanup
   }, [editor, store]);
 
+  // ── Track entity-shape count for the empty-canvas onboarding ──────────────────
+  const [entityCount, setEntityCount] = useState(0);
+  useEffect(() => {
+    if (!editor) return;
+    const recount = () =>
+      setEntityCount(
+        editor
+          .getCurrentPageShapes()
+          .filter((s) => s.type === ENTITY_SHAPE_TYPE).length,
+      );
+    recount();
+    const unsub = editor.store.listen(recount);
+    return unsub;
+  }, [editor]);
+
   // ── Canvas shape sync on mount ───────────────────────────────────────────────
 
   useEffect(() => {
@@ -203,7 +258,9 @@ export function CanvasApp(props: CanvasAppProps) {
           .getCurrentPageShapes()
           .filter((s): s is EntityShape => s.type === ENTITY_SHAPE_TYPE);
 
-        const existingEntityIds = new Set(existingShapes.map((s) => s.props.entityId));
+        const existingEntityIds = new Set(
+          existingShapes.map((s) => s.props.entityId),
+        );
 
         for (const entity of result.data) {
           if (existingEntityIds.has(entity.id)) continue;
@@ -268,7 +325,11 @@ export function CanvasApp(props: CanvasAppProps) {
   // ── Create entity ─────────────────────────────────────────────────────────────
 
   const handleCreateEntity = useCallback(
-    async (type: EntityType, defaultName: string, position?: { x: number; y: number }) => {
+    async (
+      type: EntityType,
+      defaultName: string,
+      position?: { x: number; y: number },
+    ) => {
       const ed = editorRef.current;
       if (!ed) return;
 
@@ -324,7 +385,10 @@ export function CanvasApp(props: CanvasAppProps) {
 
       // Update shape with real entityId and displayName from server
       const entity = result.data;
-      const displayName = getEntityDisplayName(entity as unknown as Record<string, unknown>, type);
+      const displayName = getEntityDisplayName(
+        entity as unknown as Record<string, unknown>,
+        type,
+      );
 
       ed.updateShapes<EntityShape>([
         {
@@ -372,19 +436,27 @@ export function CanvasApp(props: CanvasAppProps) {
     e.preventDefault();
     e.stopPropagation();
     setAiMenu(null);
-    setContextMenu({ clientX: e.clientX, clientY: e.clientY, pageX: page.x, pageY: page.y });
+    setContextMenu({
+      clientX: e.clientX,
+      clientY: e.clientY,
+      pageX: page.x,
+      pageY: page.y,
+    });
   }, []);
 
   // Trigger a field generation from the AI Actions menu: select the shape so
   // the panel opens for this entity, then hand the field to the panel to run.
-  const handleAiAction = useCallback((menu: NonNullable<typeof aiMenu>, fieldKey: string) => {
-    const ed = editorRef.current;
-    if (ed) ed.select(menu.shapeId);
-    setSelectedEntityId(menu.entityId);
-    setSelectedEntityType(menu.entityType);
-    setPendingAiField({ entityId: menu.entityId, field: fieldKey });
-    setAiMenu(null);
-  }, []);
+  const handleAiAction = useCallback(
+    (menu: NonNullable<typeof aiMenu>, fieldKey: string) => {
+      const ed = editorRef.current;
+      if (ed) ed.select(menu.shapeId);
+      setSelectedEntityId(menu.entityId);
+      setSelectedEntityType(menu.entityType);
+      setPendingAiField({ entityId: menu.entityId, field: fieldKey });
+      setAiMenu(null);
+    },
+    [],
+  );
 
   // Dismiss either menu on outside click or Escape.
   useEffect(() => {
@@ -428,7 +500,12 @@ export function CanvasApp(props: CanvasAppProps) {
       const ed = editorRef.current;
       if (!ed) return false;
 
-      const result = await createWizardEntity({ orgId, projectId, branchId, entity });
+      const result = await createWizardEntity({
+        orgId,
+        projectId,
+        branchId,
+        entity,
+      });
       if (!result.success) return false;
 
       const type = entity.entityType as EntityType;
@@ -445,7 +522,13 @@ export function CanvasApp(props: CanvasAppProps) {
           type: ENTITY_SHAPE_TYPE,
           x,
           y,
-          props: { entityId: result.data.id, entityType: type, displayName, w: 200, h: 120 },
+          props: {
+            entityId: result.data.id,
+            entityType: type,
+            displayName,
+            w: 200,
+            h: 120,
+          },
         },
       ]);
       return true;
@@ -479,7 +562,14 @@ export function CanvasApp(props: CanvasAppProps) {
       locale: handoff.locale,
       onEntity: placeWizardEntity,
     });
-  }, [wizardRequested, editor, projectId, wizard, placeWizardEntity, resetWizardIndices]);
+  }, [
+    wizardRequested,
+    editor,
+    projectId,
+    wizard,
+    placeWizardEntity,
+    resetWizardIndices,
+  ]);
 
   // "Try again" (only offered when zero entities were created): re-run with the
   // brief we cached on the first attempt.
@@ -510,7 +600,9 @@ export function CanvasApp(props: CanvasAppProps) {
   // client-side) → roll back the empty project and bounce to the dashboard.
   useEffect(() => {
     if (!wizard.upgradeRequired) return;
-    void deleteProject({ projectId, orgId }).finally(() => router.push(ROUTES.dashboard));
+    void deleteProject({ projectId, orgId }).finally(() =>
+      router.push(ROUTES.dashboard),
+    );
   }, [wizard.upgradeRequired, projectId, orgId, router]);
 
   // ── Loading / error states ────────────────────────────────────────────────────
@@ -525,8 +617,36 @@ export function CanvasApp(props: CanvasAppProps) {
 
   if (loadingState === "error") {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <p className="text-sm text-red-500">{tCommon("error")}</p>
+      <div className="flex h-full w-full items-center justify-center p-6">
+        <div className="flex max-w-sm flex-col items-center gap-4 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f5f5f7]">
+            <WifiOff className="h-5 w-5 text-red-500" aria-hidden="true" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-base font-medium text-[#17171c]">
+              {t("connectionError.title")}
+            </p>
+            <p className="text-sm leading-relaxed text-[#6b7280]">
+              {t("connectionError.description")}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-[#17171c] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black"
+            >
+              {tCommon("retry")}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push(ROUTES.dashboard)}
+              className="rounded-full px-4 py-2 text-sm font-medium text-[#17171c] transition-colors hover:bg-[#f5f5f7]"
+            >
+              {tCommon("back")}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -543,6 +663,41 @@ export function CanvasApp(props: CanvasAppProps) {
         onDismiss={handleWizardDismiss}
       />
 
+      {/* Empty-canvas onboarding — actionable: each button creates the first
+          entity of that type. Hidden once any entity exists or the AI wizard is
+          running. Container is click-through so tldraw tools stay usable. */}
+      {editor && entityCount === 0 && wizard.status === "idle" && (
+        <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center p-6">
+          <div className="pointer-events-auto flex max-w-md flex-col items-center gap-5 rounded-2xl border border-[#e5e5e8] bg-white/95 p-8 text-center shadow-sm backdrop-blur-sm">
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-lg font-medium text-[#17171c]">
+                {t("empty.title")}
+              </h2>
+              <p className="text-sm leading-relaxed text-[#6b7280]">
+                {t("empty.description")}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {ENTITY_TYPE_KEYS.map(({ type, tKey, Icon }) => {
+                const label = t(tKey);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => void handleCreateEntity(type, label)}
+                    className="flex items-center gap-1.5 rounded-full border border-[#d9d9dd] px-3 py-1.5 text-sm font-medium text-[#17171c] transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
+                  >
+                    <Icon size={15} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-[#9ca3af]">{t("empty.hint")}</p>
+          </div>
+        </div>
+      )}
+
       {/* Entity type toolbar — RTL-safe: ltr:left-4 rtl:right-4 */}
       <div className="absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 rounded-lg border border-[#d9d9dd] bg-white p-2 shadow-sm ltr:left-4 rtl:right-4">
         {ENTITY_TYPE_KEYS.map(({ type, tKey, Icon }) => {
@@ -556,7 +711,9 @@ export function CanvasApp(props: CanvasAppProps) {
               className="flex flex-col items-center gap-1 rounded-md p-2 text-[#17171c] transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
             >
               <Icon size={18} />
-              <span className="text-[10px] font-medium leading-none">{label}</span>
+              <span className="text-[10px] font-medium leading-none">
+                {label}
+              </span>
             </button>
           );
         })}
@@ -573,7 +730,9 @@ export function CanvasApp(props: CanvasAppProps) {
           className="flex items-center gap-1.5 rounded-lg border border-[#d9d9dd] bg-white px-3 py-2 text-sm font-medium text-[#17171c] shadow-sm transition-colors hover:bg-[#f5f5f7] active:bg-[#eaeaec]"
         >
           <ListChecks size={16} />
-          <span className="text-[12px] leading-none">{tFindings("sidebarTitle")}</span>
+          <span className="text-[12px] leading-none">
+            {tFindings("sidebarTitle")}
+          </span>
         </button>
       </div>
 

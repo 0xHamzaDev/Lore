@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Tailwind v4 auto-detects sources rooted at the consuming app (e.g. apps/web)
+   and skips everything outside it, so classes used only inside the shared
+   @lore/ui components (Dialog centering, etc.) never get generated. Scan the
+   ui package explicitly. Path is relative to this file (packages/config/src). */
+@source "../../ui/src";
+
 @theme {
   /* ── Surface & background ─────────────────── */
   --color-canvas: #ffffff;
@@ -38,7 +44,8 @@
   --color-deep-green-deepest: #001f1a;
 
   /* ── Typography ───────────────────────────── */
-  --font-display: var(--font-crimson), "Crimson Pro", Georgia, "Times New Roman", serif;
+  --font-display:
+    var(--font-crimson), "Crimson Pro", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
@@ -54,8 +61,12 @@
 
 /* Per-locale font swap. Plex Arabic carries both display and body for Arabic. */
 [lang="ar"] {
-  --font-display: var(--font-plex-arabic), "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-plex-arabic), "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    var(--font-plex-arabic), "IBM Plex Sans Arabic", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-sans:
+    var(--font-plex-arabic), "IBM Plex Sans Arabic", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 /* Arabic doesn't carry italic; the marketing display uses italic for Latin only. */

@@ -18,7 +18,9 @@ describe("cn", () => {
   });
 
   it("accepts conditional object syntax", () => {
-    expect(cn("flex", { "font-bold": true, "font-normal": false })).toBe("flex font-bold");
+    expect(cn("flex", { "font-bold": true, "font-normal": false })).toBe(
+      "flex font-bold",
+    );
     expect(cn({ hidden: false, block: true })).toBe("block");
   });
 });

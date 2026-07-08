@@ -41,11 +41,17 @@ export async function POST(request: NextRequest) {
     const membership = await db
       .select({ id: members.id })
       .from(members)
-      .where(and(eq(members.organizationId, project[0].orgId), eq(members.userId, session.user.id)))
+      .where(
+        and(
+          eq(members.organizationId, project[0].orgId),
+          eq(members.userId, session.user.id),
+        ),
+      )
       .limit(1);
 
     const isMember = Boolean(membership[0]);
-    const isActiveOrgOwner = project[0].orgId === session.session.activeOrganizationId;
+    const isActiveOrgOwner =
+      project[0].orgId === session.session.activeOrganizationId;
 
     if (!isMember && !isActiveOrgOwner) {
       return new Response("Access denied", { status: 403 });
@@ -68,7 +74,9 @@ export async function POST(request: NextRequest) {
       projectId,
       room,
       error:
-        err instanceof Error ? { name: err.name, message: err.message, stack: err.stack } : err,
+        err instanceof Error
+          ? { name: err.name, message: err.message, stack: err.stack }
+          : err,
     });
     return new Response("Internal server error", { status: 500 });
   }

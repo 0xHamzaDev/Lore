@@ -49,7 +49,9 @@ export function buildContinuityPrompt(input: {
   return { system, prompt };
 }
 
-export async function runContinuityAgent(input: ContinuityInput): Promise<ContinuityResult> {
+export async function runContinuityAgent(
+  input: ContinuityInput,
+): Promise<ContinuityResult> {
   const model = input.model ?? MODELS.sonnet;
   const { system, prompt } = buildContinuityPrompt(input);
 

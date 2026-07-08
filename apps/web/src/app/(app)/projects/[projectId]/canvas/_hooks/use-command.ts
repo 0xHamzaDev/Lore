@@ -72,7 +72,9 @@ export function useCommand(args: UseCommandArgs): UseCommandResult {
         return;
       }
 
-      const body = (await resp.json().catch(() => null)) as CommandResponse | null;
+      const body = (await resp
+        .json()
+        .catch(() => null)) as CommandResponse | null;
       if (!body) {
         setState({ kind: "error", message: "invalid_response" });
         return;
@@ -109,7 +111,11 @@ export function useCommand(args: UseCommandArgs): UseCommandResult {
           }
           if (creationFailed) {
             for (const c of [...created].reverse()) {
-              await deleteEntity({ type: c.type, entityId: c.entityId, orgId: args.orgId });
+              await deleteEntity({
+                type: c.type,
+                entityId: c.entityId,
+                orgId: args.orgId,
+              });
             }
             setState({ kind: "error", message: "create_failed" });
             return;

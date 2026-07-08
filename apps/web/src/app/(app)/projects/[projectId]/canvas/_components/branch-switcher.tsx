@@ -62,7 +62,9 @@ export function BranchSwitcher({
             ) : (
               <GitBranch size={15} className="text-[#6b7280]" />
             )}
-            <span className="max-w-[180px] truncate">{currentBranch?.name ?? "main"}</span>
+            <span className="max-w-[180px] truncate">
+              {currentBranch?.name ?? "main"}
+            </span>
             <ChevronsUpDown size={14} className="text-[#9ca3af]" />
           </button>
         </DropdownMenuTrigger>
@@ -86,7 +88,10 @@ export function BranchSwitcher({
             );
           })}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setForkOpen(true)} className="flex items-center gap-2">
+          <DropdownMenuItem
+            onSelect={() => setForkOpen(true)}
+            className="flex items-center gap-2"
+          >
             <Plus size={15} className="text-[#6b7280]" />
             <span>{t("fork")}</span>
           </DropdownMenuItem>

@@ -29,6 +29,27 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    // Password reset via Resend. A send failure (e.g. unverified dev domain)
+    // must not surface to the client — better-auth returns success regardless
+    // to avoid account enumeration, so we log and swallow here.
+    sendResetPassword: async ({ user, url }) => {
+      try {
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env["RESEND_API_KEY"]);
+        await resend.emails.send({
+          from: "Lore <noreply@lore.app>",
+          to: user.email,
+          subject: "Reset your Lore password",
+          html: `
+            <p>We received a request to reset your Lore password.</p>
+            <p><a href="${url}">Reset your password</a></p>
+            <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+          `,
+        });
+      } catch (err) {
+        console.error("[auth] failed to send reset-password email", err);
+      }
+    },
   },
   plugins: [
     organization({
@@ -39,7 +60,8 @@ export const auth = betterAuth({
       sendInvitationEmail: async (data) => {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env["RESEND_API_KEY"]);
-        const baseUrl = process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000";
+        const baseUrl =
+          process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000";
         const acceptUrl = `${baseUrl}/accept-invitation/${data.id}`;
 
         await resend.emails.send({
@@ -87,7 +109,11 @@ export const auth = betterAuth({
     process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000",
     // Accept any localhost port in development so Next.js auto-port-bumping (3000→3001→3002) still works.
     ...(process.env["NODE_ENV"] !== "production"
-      ? ["http://localhost:3001", "http://localhost:3002", "http://localhost:3003"]
+      ? [
+          "http://localhost:3001",
+          "http://localhost:3002",
+          "http://localhost:3003",
+        ]
       : []),
   ],
 });

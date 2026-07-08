@@ -1,7 +1,10 @@
 import * as React from "react";
 import { cn } from "./lib/utils";
 
-export interface SectionProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
+export interface SectionProps extends Omit<
+  React.HTMLAttributes<HTMLElement>,
+  "title"
+> {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
@@ -9,7 +12,18 @@ export interface SectionProps extends Omit<React.HTMLAttributes<HTMLElement>, "t
 }
 
 const Section = React.forwardRef<HTMLElement, SectionProps>(
-  ({ title, description, action, bordered = false, className, children, ...props }, ref) => (
+  (
+    {
+      title,
+      description,
+      action,
+      bordered = false,
+      className,
+      children,
+      ...props
+    },
+    ref,
+  ) => (
     <section
       ref={ref}
       className={cn(
@@ -28,10 +42,14 @@ const Section = React.forwardRef<HTMLElement, SectionProps>(
               </h2>
             ) : null}
             {description ? (
-              <p className="text-sm leading-relaxed text-body-muted">{description}</p>
+              <p className="text-sm leading-relaxed text-body-muted">
+                {description}
+              </p>
             ) : null}
           </div>
-          {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
+          {action ? (
+            <div className="flex shrink-0 items-center gap-2">{action}</div>
+          ) : null}
         </header>
       )}
       {children}

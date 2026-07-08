@@ -49,7 +49,9 @@ export function buildPacingPrompt(input: {
   return { system, prompt };
 }
 
-export async function runPacingAgent(input: PacingInput): Promise<PacingResult> {
+export async function runPacingAgent(
+  input: PacingInput,
+): Promise<PacingResult> {
   const model = input.model ?? MODELS.sonnet;
   const { system, prompt } = buildPacingPrompt(input);
 

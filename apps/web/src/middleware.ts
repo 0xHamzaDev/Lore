@@ -13,10 +13,15 @@ function detectLocale(request: NextRequest): string {
 
 // Better Auth session-cookie names. We check presence in middleware for a fast redirect; the actual
 // session is still validated inside Server Components / Server Actions via requireAuth().
-const SESSION_COOKIE_NAMES = ["better-auth.session_token", "__Secure-better-auth.session_token"];
+const SESSION_COOKIE_NAMES = [
+  "better-auth.session_token",
+  "__Secure-better-auth.session_token",
+];
 
 function hasSessionCookie(request: NextRequest): boolean {
-  return SESSION_COOKIE_NAMES.some((name) => Boolean(request.cookies.get(name)?.value));
+  return SESSION_COOKIE_NAMES.some((name) =>
+    Boolean(request.cookies.get(name)?.value),
+  );
 }
 
 const AUTH_ROUTES = ["/sign-in", "/sign-up"];
@@ -25,8 +30,12 @@ const APP_ROUTES = ["/dashboard", "/projects", "/settings"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const isAppRoute = APP_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const isAuthRoute = AUTH_ROUTES.some(
+    (r) => pathname === r || pathname.startsWith(r + "/"),
+  );
+  const isAppRoute = APP_ROUTES.some(
+    (r) => pathname === r || pathname.startsWith(r + "/"),
+  );
 
   if (isAppRoute || isAuthRoute) {
     const signedIn = hasSessionCookie(request);

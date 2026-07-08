@@ -1,5 +1,11 @@
 import { createId } from "@paralleldrive/cuid2";
-import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { organizations } from "./orgs";
 import { projects } from "./projects";
 
@@ -11,8 +17,12 @@ export const aiRuns = pgTable("ai_runs", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  orgId: text("org_id").references(() => organizations.id, { onDelete: "set null" }),
-  projectId: text("project_id").references(() => projects.id, { onDelete: "set null" }),
+  orgId: text("org_id").references(() => organizations.id, {
+    onDelete: "set null",
+  }),
+  projectId: text("project_id").references(() => projects.id, {
+    onDelete: "set null",
+  }),
   runType: text("run_type", {
     enum: ["wizard", "on_demand", "command", "query", "agent"],
   }).notNull(),

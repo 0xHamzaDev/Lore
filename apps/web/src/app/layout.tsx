@@ -33,7 +33,11 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   display: "swap",
 });
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const locale = await getLocale();
   setRequestLocale(locale);
   const messages = await getMessages();

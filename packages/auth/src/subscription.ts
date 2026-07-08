@@ -23,7 +23,9 @@ export type SubscriptionResult = {
 // Absence of a row = free plan (never inserted). A row with
 // status='active' = pro. status='cancelled' keeps access until currentPeriodEnd.
 // status='past_due' loses access immediately.
-export async function requireSubscription(orgId: string): Promise<SubscriptionResult> {
+export async function requireSubscription(
+  orgId: string,
+): Promise<SubscriptionResult> {
   const [row] = await db
     .select()
     .from(subscriptions)

@@ -1,5 +1,5 @@
-import { getTranslations } from "next-intl/server";
-import { db, subscriptions, members as membersTable, eq } from "@lore/db";
+import { getLocale, getTranslations } from "next-intl/server";
+import { db, subscriptions, members as membersTable, and, eq } from "@lore/db";
 import { Section, Badge } from "@lore/ui";
 import { requireAuth } from "@lore/auth/guard";
 import { BillingPanel } from "./_components/billing-panel";
@@ -14,6 +14,7 @@ export default async function BillingSettingsPage({
   const session = await requireAuth();
   const params = await searchParams;
   const t = await getTranslations("Billing");
+  const locale = await getLocale();
 
   let orgId = session.session.activeOrganizationId ?? "";
   if (!orgId) {
@@ -25,8 +26,28 @@ export default async function BillingSettingsPage({
     orgId = membership[0]?.organizationId ?? "";
   }
 
+  // Only owners can manage billing (matches requireOrgRole(orgId, "owner") on
+  // the actions). Non-owners see a read-only plan card.
+  const [membership] = orgId
+    ? await db
+        .select({ role: membersTable.role })
+        .from(membersTable)
+        .where(
+          and(
+            eq(membersTable.organizationId, orgId),
+            eq(membersTable.userId, session.user.id),
+          ),
+        )
+        .limit(1)
+    : [];
+  const canManage = membership?.role === "owner";
+
   const [row] = orgId
-    ? await db.select().from(subscriptions).where(eq(subscriptions.orgId, orgId)).limit(1)
+    ? await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.orgId, orgId))
+        .limit(1)
     : [];
 
   const state: PlanState = !row
@@ -38,7 +59,10 @@ export default async function BillingSettingsPage({
         : "past_due";
 
   const planLabel = state === "free" ? t("plans.free") : t("plans.pro");
-  const statusVariant: Record<PlanState, "default" | "outline" | "mono" | "coral"> = {
+  const statusVariant: Record<
+    PlanState,
+    "default" | "outline" | "mono" | "coral"
+  > = {
     free: "outline",
     active: "default",
     cancelled: "mono",
@@ -58,7 +82,11 @@ export default async function BillingSettingsPage({
         </div>
       ) : null}
 
-      <Section title={t("planSection.title")} description={t("planSection.description")} bordered>
+      <Section
+        title={t("planSection.title")}
+        description={t("planSection.description")}
+        bordered
+      >
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <span className="text-xl font-medium">{planLabel}</span>
@@ -67,25 +95,39 @@ export default async function BillingSettingsPage({
           {row ? (
             <p className="text-sm text-body-muted">
               {state === "cancelled"
-                ? t("renewal.accessUntil", { date: formatDate(row.currentPeriodEnd) })
-                : t("renewal.renewsOn", { date: formatDate(row.currentPeriodEnd) })}
+                ? t("renewal.accessUntil", {
+                    date: formatDate(row.currentPeriodEnd, locale),
+                  })
+                : t("renewal.renewsOn", {
+                    date: formatDate(row.currentPeriodEnd, locale),
+                  })}
             </p>
           ) : (
-            <p className="text-sm text-body-muted">{t("renewal.noSubscription")}</p>
+            <p className="text-sm text-body-muted">
+              {t("renewal.noSubscription")}
+            </p>
           )}
-          <BillingPanel orgId={orgId} state={state} />
+          {canManage ? (
+            <BillingPanel orgId={orgId} state={state} />
+          ) : (
+            <p className="text-sm text-body-muted">{t("ownerOnly")}</p>
+          )}
         </div>
       </Section>
 
-      <Section title={t("invoices.title")} description={t("invoices.description")} bordered>
+      <Section
+        title={t("invoices.title")}
+        description={t("invoices.description")}
+        bordered
+      >
         <p className="text-sm text-body-muted">{t("invoices.empty")}</p>
       </Section>
     </>
   );
 }
 
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",

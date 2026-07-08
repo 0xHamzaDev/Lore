@@ -2,7 +2,10 @@ import * as React from "react";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "./lib/utils";
 
-export interface ErrorStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface ErrorStateProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
@@ -25,7 +28,9 @@ const ErrorState = React.forwardRef<HTMLDivElement, ErrorStateProps>(
       <div className="flex max-w-md flex-col gap-1.5">
         <h3 className="text-lg font-medium text-primary">{title}</h3>
         {description ? (
-          <p className="text-sm leading-relaxed text-body-muted">{description}</p>
+          <p className="text-sm leading-relaxed text-body-muted">
+            {description}
+          </p>
         ) : null}
       </div>
       {action ? <div className="mt-2">{action}</div> : null}

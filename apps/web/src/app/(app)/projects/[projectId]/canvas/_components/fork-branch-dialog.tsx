@@ -95,7 +95,10 @@ export function ForkBranchDialog({
           <DialogDescription>{t("forkDescription")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-4 flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -103,7 +106,11 @@ export function ForkBranchDialog({
                 <FormItem>
                   <FormLabel>{t("namePlaceholder")}</FormLabel>
                   <FormControl>
-                    <Input autoFocus placeholder={t("namePlaceholder")} {...field} />
+                    <Input
+                      autoFocus
+                      placeholder={t("namePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
