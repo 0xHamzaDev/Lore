@@ -360,6 +360,8 @@
       "scene": "Scene",
       "timelineEvent": "Event"
     },
+    "errorTitle": "The canvas ran into a problem",
+    "errorDescription": "Something went wrong while rendering this board. Retrying usually fixes it — your work is saved.",
     "addEntity": "Add entity",
     "deleteEntity": "Delete entity",
     "deleteConfirm": "Are you sure you want to delete this entity? This cannot be undone.",

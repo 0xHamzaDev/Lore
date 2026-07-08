@@ -45,11 +45,23 @@ export interface CanvasAppProps {
 // ─── Entity toolbar config ────────────────────────────────────────────────────
 
 const ENTITY_TYPE_KEYS = [
-  { type: "character" as EntityType, tKey: "entityTypes.character", Icon: User },
-  { type: "location" as EntityType, tKey: "entityTypes.location", Icon: MapPin },
+  {
+    type: "character" as EntityType,
+    tKey: "entityTypes.character",
+    Icon: User,
+  },
+  {
+    type: "location" as EntityType,
+    tKey: "entityTypes.location",
+    Icon: MapPin,
+  },
   { type: "faction" as EntityType, tKey: "entityTypes.faction", Icon: Shield },
   { type: "scene" as EntityType, tKey: "entityTypes.scene", Icon: Film },
-  { type: "timeline_event" as EntityType, tKey: "entityTypes.timelineEvent", Icon: Clock },
+  {
+    type: "timeline_event" as EntityType,
+    tKey: "entityTypes.timelineEvent",
+    Icon: Clock,
+  },
 ] as const;
 
 // Disable tldraw's built-in context menu — Phase 3.5 replaces it with the
@@ -205,12 +217,15 @@ export function CanvasApp(props: CanvasAppProps) {
 
         const existingEntityIds = new Set(existingShapes.map((s) => s.props.entityId));
 
-        for (const entity of result.data) {
+        for (let index = 0; index < result.data.length; index++) {
+          const entity = result.data[index]!;
           if (existingEntityIds.has(entity.id)) continue;
 
-          // Random position within a 1200×800 viewport
-          const x = Math.random() * 1200;
-          const y = Math.random() * 800;
+          // Deterministic, non-overlapping grid placement — the same layout the
+          // wizard uses. Keyed off the entity's stable arrival index so a given
+          // entity lands in the same slot on every seed (no random overlap, and
+          // no reshuffle when some entities already have persisted geometry).
+          const { x, y } = wizardSlot(type, index);
 
           const shapeId = `shape:${createId()}` as TLShapeId;
           const displayName = getEntityDisplayName(
@@ -372,7 +387,12 @@ export function CanvasApp(props: CanvasAppProps) {
     e.preventDefault();
     e.stopPropagation();
     setAiMenu(null);
-    setContextMenu({ clientX: e.clientX, clientY: e.clientY, pageX: page.x, pageY: page.y });
+    setContextMenu({
+      clientX: e.clientX,
+      clientY: e.clientY,
+      pageX: page.x,
+      pageY: page.y,
+    });
   }, []);
 
   // Trigger a field generation from the AI Actions menu: select the shape so
@@ -428,7 +448,12 @@ export function CanvasApp(props: CanvasAppProps) {
       const ed = editorRef.current;
       if (!ed) return false;
 
-      const result = await createWizardEntity({ orgId, projectId, branchId, entity });
+      const result = await createWizardEntity({
+        orgId,
+        projectId,
+        branchId,
+        entity,
+      });
       if (!result.success) return false;
 
       const type = entity.entityType as EntityType;
@@ -445,7 +470,13 @@ export function CanvasApp(props: CanvasAppProps) {
           type: ENTITY_SHAPE_TYPE,
           x,
           y,
-          props: { entityId: result.data.id, entityType: type, displayName, w: 200, h: 120 },
+          props: {
+            entityId: result.data.id,
+            entityType: type,
+            displayName,
+            w: 200,
+            h: 120,
+          },
         },
       ]);
       return true;

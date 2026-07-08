@@ -1,86 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const mockSelect = vi.fn();
-
-vi.mock("@lore/db", () => ({
-  db: {
-    select: () => ({
-      from: () => ({
-        where: () => ({
-          limit: mockSelect,
-        }),
-      }),
-    }),
-  },
-  subscriptions: { orgId: "org_id" },
-}));
+import { describe, it, expect } from "vitest";
 
 import { requireSubscription } from "./subscription";
 
-describe("requireSubscription", () => {
-  beforeEach(() => {
-    mockSelect.mockReset();
+// The product ships "pro" for free: requireSubscription is now an unconditional
+// unlock (the subscriptions table and billing code are retained so paid gating
+// can be reinstated later). These tests pin that behavior so a future change
+// that silently re-introduces gating fails loudly. No DB mock is needed because
+// the function no longer queries the subscriptions table.
+describe("requireSubscription (pro unlocked for everyone)", () => {
+  it("returns allowed: true, plan: pro for any org", async () => {
+    const result = await requireSubscription("org_123");
+    expect(result).toEqual({ allowed: true, plan: "pro" });
   });
 
-  it("returns allowed: false, plan: free when no row exists", async () => {
-    mockSelect.mockResolvedValueOnce([]);
-    const result = await requireSubscription("org_123");
-    expect(result).toEqual({ allowed: false, plan: "free" });
+  it("unlocks an org that has no subscription row", async () => {
+    const result = await requireSubscription("org_without_row");
+    expect(result).toEqual({ allowed: true, plan: "pro" });
   });
 
-  it("returns allowed: true, plan: pro for active subscription", async () => {
-    mockSelect.mockResolvedValueOnce([
-      {
-        orgId: "org_123",
-        plan: "pro",
-        status: "active",
-        currentPeriodEnd: new Date(Date.now() + 86_400_000),
-      },
-    ]);
-    const result = await requireSubscription("org_123");
-    expect(result.allowed).toBe(true);
-    expect(result.plan).toBe("pro");
-  });
-
-  it("keeps access for cancelled subscription before period end", async () => {
-    const periodEnd = new Date(Date.now() + 86_400_000);
-    mockSelect.mockResolvedValueOnce([
-      {
-        orgId: "org_123",
-        plan: "pro",
-        status: "cancelled",
-        currentPeriodEnd: periodEnd,
-      },
-    ]);
-    const result = await requireSubscription("org_123");
-    expect(result.allowed).toBe(true);
-    expect(result.plan).toBe("pro");
-    expect(result.cancelledUntil).toEqual(periodEnd);
-  });
-
-  it("revokes access for cancelled subscription after period end", async () => {
-    mockSelect.mockResolvedValueOnce([
-      {
-        orgId: "org_123",
-        plan: "pro",
-        status: "cancelled",
-        currentPeriodEnd: new Date(Date.now() - 86_400_000),
-      },
-    ]);
-    const result = await requireSubscription("org_123");
-    expect(result).toEqual({ allowed: false, plan: "free" });
-  });
-
-  it("revokes access for past_due subscription", async () => {
-    mockSelect.mockResolvedValueOnce([
-      {
-        orgId: "org_123",
-        plan: "pro",
-        status: "past_due",
-        currentPeriodEnd: new Date(Date.now() + 86_400_000),
-      },
-    ]);
-    const result = await requireSubscription("org_123");
-    expect(result).toEqual({ allowed: false, plan: "free" });
+  it("never denies, for any org id", async () => {
+    for (const orgId of ["a", "b", "c", ""]) {
+      const result = await requireSubscription(orgId);
+      expect(result.allowed).toBe(true);
+      expect(result.plan).toBe("pro");
+    }
   });
 });

@@ -1,6 +1,3 @@
-import { db, subscriptions } from "@lore/db";
-import { eq } from "drizzle-orm";
-
 export type SubscriptionPlan = "free" | "pro";
 
 export type SubscriptionResult = {
@@ -20,31 +17,13 @@ export type SubscriptionResult = {
   cancelledUntil?: Date;
 };
 
-// Absence of a row = free plan (never inserted). A row with
-// status='active' = pro. status='cancelled' keeps access until currentPeriodEnd.
-// status='past_due' loses access immediately.
-export async function requireSubscription(orgId: string): Promise<SubscriptionResult> {
-  const [row] = await db
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.orgId, orgId))
-    .limit(1);
-
-  if (!row) {
-    return { allowed: false, plan: "free" };
-  }
-
-  if (row.status === "active") {
-    return { allowed: true, plan: "pro" };
-  }
-
-  if (row.status === "cancelled" && row.currentPeriodEnd > new Date()) {
-    return {
-      allowed: true,
-      plan: "pro",
-      cancelledUntil: row.currentPeriodEnd,
-    };
-  }
-
-  return { allowed: false, plan: "free" };
+// All features are unlocked for every org — the product ships "pro" for free.
+// This is the single gate every server- and client-side check derives from
+// (route guards, the project quota, AI command intents, findings, background
+// runs), so returning an allowed/pro result here makes the whole app behave as
+// fully entitled without editing each call site. The parameter and the
+// `subscriptions` table are kept so paid gating can be reinstated by restoring
+// the row lookup that previously lived here.
+export async function requireSubscription(_orgId: string): Promise<SubscriptionResult> {
+  return { allowed: true, plan: "pro" };
 }

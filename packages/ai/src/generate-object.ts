@@ -1,6 +1,30 @@
 import { generateObject } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { chatModel, toTokenCount } from "./provider";
 import type { ZodSchema } from "zod";
+
+/**
+ * Repair loosely-formatted model JSON so the SDK's strict parser accepts it.
+ * Ollama models frequently return the object wrapped in a ```json fence and/or
+ * with leading prose. We unwrap a fenced block if present, then slice to the
+ * outermost {...} / [...] span. Returns the repaired string, or null to let the
+ * SDK surface its original parse error when nothing JSON-shaped is found.
+ */
+async function repairModelJson({ text }: { text: string }): Promise<string | null> {
+  let t = text.trim();
+
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence?.[1]) t = fence[1].trim();
+
+  const firstObj = t.indexOf("{");
+  const firstArr = t.indexOf("[");
+  const candidates = [firstObj, firstArr].filter((i) => i >= 0);
+  if (candidates.length === 0) return null;
+  const start = Math.min(...candidates);
+  const end = Math.max(t.lastIndexOf("}"), t.lastIndexOf("]"));
+  if (end <= start) return null;
+
+  return t.slice(start, end + 1);
+}
 
 export interface GenerateModelObjectOptions<T> {
   model: string;
@@ -36,8 +60,18 @@ export async function generateModelObject<T>(
   // Record<string, unknown> because `Parameters<typeof generateObject>[0]`
   // collapses to the last (no-schema) overload, hiding the schema field.
   const params: Record<string, unknown> = {
-    model: anthropic(opts.model),
+    model: chatModel(opts.model),
     schema: opts.schema,
+    // Force JSON mode rather than tool-calling: Ollama's OpenAI-compatible
+    // endpoint reliably supports `response_format: json_object`, whereas
+    // function-call structured output varies by model. The SDK injects the
+    // schema into the prompt in this mode.
+    mode: "json",
+    // Ollama models don't fully honor `response_format` — they commonly wrap
+    // the JSON in ```json markdown fences or add prose, which the SDK's strict
+    // parser rejects ("could not parse the response"). Repair the raw text by
+    // unwrapping fences and slicing to the outermost JSON value before parsing.
+    experimental_repairText: repairModelJson,
     maxTokens: opts.maxTokens ?? 1024,
     abortSignal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
   };
@@ -50,8 +84,8 @@ export async function generateModelObject<T>(
   return {
     object: result.object as T,
     usage: {
-      inputTokens: result.usage?.promptTokens ?? 0,
-      outputTokens: result.usage?.completionTokens ?? 0,
+      inputTokens: toTokenCount(result.usage?.promptTokens),
+      outputTokens: toTokenCount(result.usage?.completionTokens),
     },
     latencyMs: Date.now() - start,
     model: opts.model,
