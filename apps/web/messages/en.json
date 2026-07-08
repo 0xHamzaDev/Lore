@@ -417,6 +417,8 @@
       "scene": "Scene",
       "timelineEvent": "Event"
     },
+    "errorTitle": "The canvas ran into a problem",
+    "errorDescription": "Something went wrong while rendering this board. Retrying usually fixes it — your work is saved.",
     "addEntity": "Add entity",
     "empty": {
       "title": "Your world is a blank canvas",

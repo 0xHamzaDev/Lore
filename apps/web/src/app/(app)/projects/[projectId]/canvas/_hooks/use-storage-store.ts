@@ -9,12 +9,13 @@
  * 1. Create a local tldraw store with EntityShapeUtil registered.
  * 2. On mount, seed the store with any records already in Liveblocks Storage.
  * 3. Subscribe to local store changes → push additions/updates/deletions to Liveblocks.
- * 4. Subscribe to Liveblocks remote changes → merge them into the local store.
+ * 4. React to remote Storage changes → merge them into the local store.
  *
- * NOTE: Full bidirectional real-time sync via Liveblocks subscribe() is a
- * future enhancement. The current implementation provides single-user
- * persistence via Liveblocks Storage: the store is seeded on mount from
- * `root.records` and local changes are pushed back to the LiveMap.
+ * Bidirectional real-time sync: `useStorage` re-renders on every change to the
+ * records map (local OR remote), so the merge effect (step 4) diffs the latest
+ * snapshot into the local store as *remote* changes. The push listener (step 3)
+ * only fires on `source: "user"` changes, so remote merges never echo back —
+ * two clients on the same branch now see each other's shapes live.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -78,6 +79,10 @@ export function useStorageStore(): UseStorageStoreResult {
   // Track whether we have seeded the store from Liveblocks.
   const seededRef = useRef(false);
 
+  // Ids currently present in the remote records map. Used by the merge effect to
+  // detect remote deletions (an id that was here last tick but is now gone).
+  const remoteIdsRef = useRef<Set<string>>(new Set());
+
   // ── Step 1: Seed local store from Liveblocks on first ready ────────────────
   useEffect(() => {
     if (seededRef.current) return;
@@ -131,6 +136,64 @@ export function useStorageStore(): UseStorageStoreResult {
     }, 15000);
     return () => clearTimeout(timer);
   }, [loadingState]);
+  // ── Step 1b: Merge remote Storage changes into the local store ─────────────
+  //
+  // `liveblocksRecords` is a fresh snapshot on every change to the records map,
+  // including edits made by OTHER clients. We diff it against the local store
+  // and apply the delta inside `mergeRemoteChanges` so the change is tagged
+  // `source: "remote"` — the push listener below (source: "user") therefore
+  // ignores it and we never echo a remote change back to Liveblocks.
+  useEffect(() => {
+    if (loadingState !== "ready") return;
+    if (!liveblocksRecords) return;
+
+    const nextRemoteIds = new Set<string>();
+    const toPut: TLRecord[] = [];
+
+    for (const value of Object.values(liveblocksRecords)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+      const record = value as unknown as TLRecord;
+      if (!record.id) continue;
+      nextRemoteIds.add(record.id);
+
+      // Only apply records that differ from what we already have, so a record we
+      // just pushed ourselves (round-tripped through Storage) is a no-op rather
+      // than a redundant write.
+      const local = store.get(record.id);
+      if (!local || JSON.stringify(local) !== JSON.stringify(record)) {
+        toPut.push(record);
+      }
+    }
+
+    // An id that was remote-managed last tick but is absent now is a remote
+    // deletion. We only remove ids we previously saw in Storage, so local-only
+    // records (camera, instance state, …) that never sync are never touched.
+    const toDelete: string[] = [];
+    for (const id of remoteIdsRef.current) {
+      if (!nextRemoteIds.has(id) && store.has(id as TLRecord["id"])) {
+        toDelete.push(id);
+      }
+    }
+    remoteIdsRef.current = nextRemoteIds;
+
+    if (toPut.length === 0 && toDelete.length === 0) return;
+
+    store.mergeRemoteChanges(() => {
+      for (const record of toPut) {
+        try {
+          store.put([record], "initialize");
+        } catch (err) {
+          console.warn("[useStorageStore] skipping malformed remote record", {
+            recordId: record.id,
+            error: err instanceof Error ? err.message : err,
+          });
+        }
+      }
+      if (toDelete.length > 0) {
+        store.remove(toDelete as unknown as TLRecord["id"][]);
+      }
+    });
+  }, [liveblocksRecords, loadingState, store]);
 
   // ── Step 2: Subscribe to local store changes → push to Liveblocks ──────────
   //

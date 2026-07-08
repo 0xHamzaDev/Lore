@@ -262,12 +262,15 @@ export function CanvasApp(props: CanvasAppProps) {
           existingShapes.map((s) => s.props.entityId),
         );
 
-        for (const entity of result.data) {
+        for (let index = 0; index < result.data.length; index++) {
+          const entity = result.data[index]!;
           if (existingEntityIds.has(entity.id)) continue;
 
-          // Random position within a 1200×800 viewport
-          const x = Math.random() * 1200;
-          const y = Math.random() * 800;
+          // Deterministic, non-overlapping grid placement — the same layout the
+          // wizard uses. Keyed off the entity's stable arrival index so a given
+          // entity lands in the same slot on every seed (no random overlap, and
+          // no reshuffle when some entities already have persisted geometry).
+          const { x, y } = wizardSlot(type, index);
 
           const shapeId = `shape:${createId()}` as TLShapeId;
           const displayName = getEntityDisplayName(
