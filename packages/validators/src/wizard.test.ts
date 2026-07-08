@@ -18,39 +18,60 @@ describe("wizardEntitySchema", () => {
   });
 
   it("accepts a minimal character (name only)", () => {
-    const r = wizardEntitySchema.safeParse({ entityType: "character", data: { name: "Layla" } });
+    const r = wizardEntitySchema.safeParse({
+      entityType: "character",
+      data: { name: "Layla" },
+    });
     expect(r.success).toBe(true);
   });
 
   it("strips unknown keys in data rather than rejecting", () => {
     const r = wizardEntitySchema.safeParse({
       entityType: "location",
-      data: { name: "Riyadh", description: "A sprawling capital.", bogus: "drop me" },
+      data: {
+        name: "Riyadh",
+        description: "A sprawling capital.",
+        bogus: "drop me",
+      },
     });
     expect(r.success).toBe(true);
     if (r.success) expect("bogus" in r.data.data).toBe(false);
   });
 
   it("rejects a missing required name", () => {
-    expect(wizardEntitySchema.safeParse({ entityType: "character", data: {} }).success).toBe(false);
+    expect(
+      wizardEntitySchema.safeParse({ entityType: "character", data: {} })
+        .success,
+    ).toBe(false);
   });
 
   it("rejects an unknown entityType", () => {
     expect(
-      wizardEntitySchema.safeParse({ entityType: "spaceship", data: { name: "X" } }).success,
+      wizardEntitySchema.safeParse({
+        entityType: "spaceship",
+        data: { name: "X" },
+      }).success,
     ).toBe(false);
   });
 
   it("uses title (not name) for scene and timeline_event", () => {
     expect(
-      wizardEntitySchema.safeParse({ entityType: "scene", data: { title: "Opening" } }).success,
+      wizardEntitySchema.safeParse({
+        entityType: "scene",
+        data: { title: "Opening" },
+      }).success,
     ).toBe(true);
     expect(
-      wizardEntitySchema.safeParse({ entityType: "scene", data: { name: "Opening" } }).success,
+      wizardEntitySchema.safeParse({
+        entityType: "scene",
+        data: { name: "Opening" },
+      }).success,
     ).toBe(false);
     expect(
-      wizardEntitySchema.safeParse({ entityType: "timeline_event", data: { title: "The Fall" } })
-        .success,
+      wizardEntitySchema.safeParse({
+        entityType: "timeline_event",
+        data: { title: "The Fall" },
+      }).success,
     ).toBe(true);
   });
 

@@ -39,7 +39,8 @@ function parseFrame(frame: string): { event: string; data: string } {
   let data = "";
   for (const line of frame.split("\n")) {
     if (line.startsWith("event:")) event = line.slice("event:".length).trim();
-    else if (line.startsWith("data:")) data += line.slice("data:".length).trim();
+    else if (line.startsWith("data:"))
+      data += line.slice("data:".length).trim();
   }
   return { event, data };
 }
@@ -176,5 +177,14 @@ export function useFieldGeneration(): UseFieldGeneration {
   // Abort any in-flight request when the panel unmounts.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  return { status, fieldKey, suggestion, meta, error, upgradeRequired, start, reset };
+  return {
+    status,
+    fieldKey,
+    suggestion,
+    meta,
+    error,
+    upgradeRequired,
+    start,
+    reset,
+  };
 }

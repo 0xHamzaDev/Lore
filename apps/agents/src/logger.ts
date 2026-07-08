@@ -8,7 +8,10 @@ import { db, aiRuns, type NewAiRun } from "@lore/db";
 // result, so we swallow it here and surface it in the server logs.
 export async function logAiRun(row: NewAiRun): Promise<string | null> {
   try {
-    const [inserted] = await db.insert(aiRuns).values(row).returning({ id: aiRuns.id });
+    const [inserted] = await db
+      .insert(aiRuns)
+      .values(row)
+      .returning({ id: aiRuns.id });
     return inserted?.id ?? null;
   } catch (err) {
     console.error("[agents] failed to write ai_runs row", err);

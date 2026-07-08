@@ -13,7 +13,11 @@ export interface BackgroundInput {
   branchId: string;
 }
 
-export type BackgroundAgent = "continuity" | "pacing" | "dialogue" | "verification";
+export type BackgroundAgent =
+  | "continuity"
+  | "pacing"
+  | "dialogue"
+  | "verification";
 
 export interface AgentRunSummary {
   agent: BackgroundAgent;
@@ -32,7 +36,13 @@ export interface BackgroundResult {
 interface SingleAgentResult {
   findings: Array<{
     entityId: string | null;
-    entityType: "character" | "location" | "faction" | "scene" | "timeline_event" | null;
+    entityType:
+      | "character"
+      | "location"
+      | "faction"
+      | "scene"
+      | "timeline_event"
+      | null;
     severity: "error" | "warning" | "info";
     message: string;
   }>;
@@ -114,7 +124,9 @@ async function runOne(args: {
   };
 }
 
-export async function runBackgroundAgents(input: BackgroundInput): Promise<BackgroundResult> {
+export async function runBackgroundAgents(
+  input: BackgroundInput,
+): Promise<BackgroundResult> {
   const startedAt = Date.now();
 
   let ctx: Awaited<ReturnType<typeof buildAgentContext>>;

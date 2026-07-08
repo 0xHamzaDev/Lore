@@ -16,7 +16,14 @@ type Storage = {
 };
 
 const {
-  suspense: { RoomProvider, useRoom, useStorage, useMutation, useOthersMapped, useSelf },
+  suspense: {
+    RoomProvider,
+    useRoom,
+    useStorage,
+    useMutation,
+    useOthersMapped,
+    useSelf,
+  },
 } = createRoomContext<Presence, Storage>(client);
 
 export {

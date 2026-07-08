@@ -14,7 +14,9 @@ describe("buildCommandRouterPrompt", () => {
   it("serializes the entity list as JSON inside the prompt", () => {
     const { prompt } = buildCommandRouterPrompt({
       instruction: "edit Ahmad",
-      entities: [{ id: "c1", type: "character", name: "Ahmad", hint: "detective" }],
+      entities: [
+        { id: "c1", type: "character", name: "Ahmad", hint: "detective" },
+      ],
       locale: "en",
     });
     expect(prompt).toContain('"id":"c1"');
@@ -44,7 +46,13 @@ describe("buildCommandRouterPrompt", () => {
       entities: [],
       locale: "en",
     });
-    for (const intent of ["create", "edit", "query", "agent_trigger", "unknown"]) {
+    for (const intent of [
+      "create",
+      "edit",
+      "query",
+      "agent_trigger",
+      "unknown",
+    ]) {
       expect(system).toContain(intent);
     }
   });

@@ -2,7 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@lore/ai", () => ({
   generateModelObject: vi.fn(),
-  MODELS: { sonnet: "claude-sonnet-4-6", opus: "claude-opus-4-7", haiku: "claude-haiku-4-5" },
+  MODELS: {
+    sonnet: "claude-sonnet-4-6",
+    opus: "claude-opus-4-7",
+    haiku: "claude-haiku-4-5",
+  },
 }));
 
 const { runPacingAgent, buildPacingPrompt } = await import("./pacing");
@@ -24,17 +28,28 @@ describe("buildPacingPrompt", () => {
 
 describe("runPacingAgent", () => {
   it("returns parsed findings", async () => {
-    (generateModelObject as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      generateModelObject as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       object: {
         findings: [
-          { entityId: null, entityType: null, severity: "info", message: "Act 2 underweight." },
+          {
+            entityId: null,
+            entityType: null,
+            severity: "info",
+            message: "Act 2 underweight.",
+          },
         ],
       },
       usage: { inputTokens: 50, outputTokens: 10 },
       latencyMs: 200,
     });
 
-    const out = await runPacingAgent({ projectId: "p", branchId: "b", entities: [] });
+    const out = await runPacingAgent({
+      projectId: "p",
+      branchId: "b",
+      entities: [],
+    });
     expect(out.findings[0]!.entityId).toBeNull();
     expect(out.findings[0]!.severity).toBe("info");
     expect(out.model).toBe("claude-sonnet-4-6");

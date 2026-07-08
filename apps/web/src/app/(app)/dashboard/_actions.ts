@@ -1,6 +1,5 @@
 "use server";
 
-import { requireAuth } from "@lore/auth/guard";
 import { requireOrgRole } from "@lore/auth/permissions";
 import { requireSubscription } from "@lore/auth/subscription";
 import { db, projects, branches } from "@lore/db";
@@ -11,8 +10,14 @@ import { z } from "zod";
 
 const nameSchema = z.string().min(1).max(100);
 
-export async function listProjects(orgId: string): Promise<ActionResult<Project[]>> {
-  await requireAuth(); // must NOT be inside try/catch — Next.js redirect() throws internally
+export async function listProjects(
+  orgId: string,
+): Promise<ActionResult<Project[]>> {
+  // Authz, not just authn: verify org membership before returning rows.
+  // orgId is client-supplied, so authn alone is an IDOR (any signed-in user
+  // could read another org's projects).
+  const authResult = await requireOrgRole(orgId, "viewer");
+  if (!authResult.success) return authResult;
   try {
     const rows = await db
       .select()
@@ -35,7 +40,10 @@ export async function createProject(data: {
   const trimmed = data.name.trim();
   const parsed = nameSchema.safeParse(trimmed);
   if (!parsed.success) {
-    return { success: false, error: "Project name must be between 1 and 100 characters." };
+    return {
+      success: false,
+      error: "Project name must be between 1 and 100 characters.",
+    };
   }
 
   try {
@@ -92,14 +100,19 @@ export async function renameProject(data: {
   const trimmed = data.name.trim();
   const parsed = nameSchema.safeParse(trimmed);
   if (!parsed.success) {
-    return { success: false, error: "Project name must be between 1 and 100 characters." };
+    return {
+      success: false,
+      error: "Project name must be between 1 and 100 characters.",
+    };
   }
 
   try {
     const [updated] = await db
       .update(projects)
       .set({ name: trimmed, updatedAt: new Date() })
-      .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)))
+      .where(
+        and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)),
+      )
       .returning();
 
     if (!updated) return { success: false, error: "Project not found." };
@@ -120,7 +133,9 @@ export async function deleteProject(data: {
     await db
       .update(projects)
       .set({ deletedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)));
+      .where(
+        and(eq(projects.id, data.projectId), eq(projects.orgId, data.orgId)),
+      );
 
     return { success: true, data: undefined };
   } catch {

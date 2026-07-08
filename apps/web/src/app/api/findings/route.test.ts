@@ -5,10 +5,16 @@ const requireOrgRoleMock = vi.fn();
 const requireSubscriptionMock = vi.fn();
 const selectMock = vi.fn();
 
-vi.mock("@lore/auth", () => ({ auth: { api: { getSession: getSessionMock } } }));
+vi.mock("@lore/auth", () => ({
+  auth: { api: { getSession: getSessionMock } },
+}));
 vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }));
-vi.mock("@lore/auth/permissions", () => ({ requireOrgRole: requireOrgRoleMock }));
-vi.mock("@lore/auth/subscription", () => ({ requireSubscription: requireSubscriptionMock }));
+vi.mock("@lore/auth/permissions", () => ({
+  requireOrgRole: requireOrgRoleMock,
+}));
+vi.mock("@lore/auth/subscription", () => ({
+  requireSubscription: requireSubscriptionMock,
+}));
 vi.mock("@lore/db", () => ({
   db: { select: selectMock },
   agentFindings: {},
@@ -23,13 +29,18 @@ vi.mock("@lore/db", () => ({
 const { GET } = await import("./route");
 
 function urlFor(projectId: string, branchId: string): Request {
-  return new Request(`http://x/api/findings?projectId=${projectId}&branchId=${branchId}`);
+  return new Request(
+    `http://x/api/findings?projectId=${projectId}&branchId=${branchId}`,
+  );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   getSessionMock.mockResolvedValue({ user: { id: "u1" } });
-  requireOrgRoleMock.mockResolvedValue({ success: true, data: { userId: "u1" } });
+  requireOrgRoleMock.mockResolvedValue({
+    success: true,
+    data: { userId: "u1" },
+  });
   requireSubscriptionMock.mockResolvedValue({ allowed: true, plan: "pro" });
   // Default: project lookup returns one row with orgId=o1.
   selectMock.mockImplementation(() => ({
@@ -52,7 +63,10 @@ describe("GET /api/findings", () => {
   });
 
   it("returns 403 when the user lacks the org role", async () => {
-    requireOrgRoleMock.mockResolvedValue({ success: false, error: "forbidden" });
+    requireOrgRoleMock.mockResolvedValue({
+      success: false,
+      error: "forbidden",
+    });
     const res = await GET(urlFor("p1", "b1"));
     expect(res.status).toBe(403);
   });
@@ -61,6 +75,10 @@ describe("GET /api/findings", () => {
     requireSubscriptionMock.mockResolvedValue({ allowed: false, plan: "free" });
     const res = await GET(urlFor("p1", "b1"));
     const body = await res.json();
-    expect(body).toMatchObject({ findings: [], runStatus: null, freeTeaser: true });
+    expect(body).toMatchObject({
+      findings: [],
+      runStatus: null,
+      freeTeaser: true,
+    });
   });
 });

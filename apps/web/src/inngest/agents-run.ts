@@ -15,7 +15,9 @@ export async function _handler({
 
   // Free orgs don't get background story checks (cost gate). The teaser in
   // the canvas sidebar is static — no live count to leak.
-  const sub = await step.run("load-subscription", () => requireSubscription(orgId));
+  const sub = await step.run("load-subscription", () =>
+    requireSubscription(orgId),
+  );
   if (!sub.allowed) return { skipped: "free_plan" };
 
   return step.run("call-agents", async () => {

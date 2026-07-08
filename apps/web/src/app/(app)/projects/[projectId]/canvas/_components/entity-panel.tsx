@@ -8,7 +8,12 @@ import { Button, Input, Label, Textarea } from "@lore/ui";
 
 import type { EntityType } from "@lore/db";
 import { UpgradeModal } from "@/components/upgrade-modal";
-import { listEntities, updateEntity, deleteEntity, acceptFieldSuggestion } from "../_actions";
+import {
+  listEntities,
+  updateEntity,
+  deleteEntity,
+  acceptFieldSuggestion,
+} from "../_actions";
 import { useFieldGeneration } from "../_hooks/use-field-generation";
 import { FieldSuggestion } from "./field-suggestion";
 
@@ -109,7 +114,9 @@ export function EntityPanel({
   const [isLoading, setIsLoading] = useState(true);
 
   // Debounce timers per field
-  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
 
   // ── Load entity on mount / entityId change ───────────────────────────────────
 
@@ -138,7 +145,8 @@ export function EntityPanel({
       const values: Record<string, string> = {};
       for (const field of fields) {
         const raw = rec[field.key];
-        values[field.key] = raw !== null && raw !== undefined ? String(raw) : "";
+        values[field.key] =
+          raw !== null && raw !== undefined ? String(raw) : "";
       }
 
       setFieldValues(values);
@@ -258,9 +266,14 @@ export function EntityPanel({
   // the entity's fields have loaded (so the prompt gets full context).
   useEffect(() => {
     if (!initialGenerateField || isLoading) return;
-    const field = (FIELD_CONFIG[entityType] ?? []).find((f) => f.key === initialGenerateField);
+    const field = (FIELD_CONFIG[entityType] ?? []).find(
+      (f) => f.key === initialGenerateField,
+    );
     if (field) {
-      startGeneration(field.key, tEntity(field.tKey as Parameters<typeof tEntity>[0]));
+      startGeneration(
+        field.key,
+        tEntity(field.tKey as Parameters<typeof tEntity>[0]),
+      );
     }
     onInitialGenerateConsumed?.();
   }, [
@@ -294,7 +307,9 @@ export function EntityPanel({
           <span className="text-sm font-semibold text-[#17171c]">
             {t(ENTITY_TYPE_KEY[entityType])}
           </span>
-          {isSaving && <span className="text-xs text-[#93939f]">{t("saving")}</span>}
+          {isSaving && (
+            <span className="text-xs text-[#93939f]">{t("saving")}</span>
+          )}
         </div>
         <Button
           variant="ghost"
@@ -317,15 +332,21 @@ export function EntityPanel({
           <div className="flex flex-col gap-4">
             {fields.map((field) => {
               const value = fieldValues[field.key] ?? "";
-              const label = tEntity(field.tKey as Parameters<typeof tEntity>[0]);
+              const label = tEntity(
+                field.tKey as Parameters<typeof tEntity>[0],
+              );
               const fieldId = `entity-field-${field.key}`;
 
-              const isGenerating = gen.fieldKey === field.key && gen.status !== "idle";
+              const isGenerating =
+                gen.fieldKey === field.key && gen.status !== "idle";
 
               return (
                 <div key={field.key} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor={fieldId} className="text-xs font-medium text-[#5d5d6e]">
+                    <Label
+                      htmlFor={fieldId}
+                      className="text-xs font-medium text-[#5d5d6e]"
+                    >
                       {label}
                     </Label>
                     {/* Wand only on text-rich (multiline) fields — Phase 7. */}
@@ -350,7 +371,11 @@ export function EntityPanel({
                       value={value}
                       rows={3}
                       onChange={(e) =>
-                        handleFieldChange(field.key, e.target.value, field.isNameField ?? false)
+                        handleFieldChange(
+                          field.key,
+                          e.target.value,
+                          field.isNameField ?? false,
+                        )
                       }
                       className="resize-none text-sm"
                     />
@@ -359,7 +384,11 @@ export function EntityPanel({
                       id={fieldId}
                       value={value}
                       onChange={(e) =>
-                        handleFieldChange(field.key, e.target.value, field.isNameField ?? false)
+                        handleFieldChange(
+                          field.key,
+                          e.target.value,
+                          field.isNameField ?? false,
+                        )
                       }
                       className="text-sm"
                     />
@@ -381,7 +410,11 @@ export function EntityPanel({
         )}
       </div>
 
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} reason="ai" />
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        reason="ai"
+      />
     </div>
   );
 }

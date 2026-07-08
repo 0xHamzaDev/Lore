@@ -1,7 +1,15 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@lore/utils";
-import { ArrowRight, CheckCircle2, Clock, Film, MapPin, Shield, Users } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Film,
+  MapPin,
+  Shield,
+  Users,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const metadata = {
@@ -10,7 +18,10 @@ export const metadata = {
     "Give your story's characters, places, and factions a shared memory — built and connected by AI.",
 };
 
-const ENTITY_ICONS: Record<"character" | "location" | "faction" | "scene" | "event", LucideIcon> = {
+const ENTITY_ICONS: Record<
+  "character" | "location" | "faction" | "scene" | "event",
+  LucideIcon
+> = {
   character: Users,
   location: MapPin,
   faction: Shield,
@@ -35,9 +46,15 @@ function MonoLabel({
   tone?: "muted" | "light" | "deep";
 }) {
   const toneClass =
-    tone === "light" ? "text-pale-green/70" : tone === "deep" ? "text-deep-green" : "text-muted";
+    tone === "light"
+      ? "text-pale-green/70"
+      : tone === "deep"
+        ? "text-deep-green"
+        : "text-muted";
   return (
-    <span className={`font-mono text-[11px] uppercase tracking-widest ${toneClass}`}>
+    <span
+      className={`font-mono text-[11px] uppercase tracking-widest ${toneClass}`}
+    >
       {children}
     </span>
   );
@@ -87,7 +104,9 @@ function CanvasMockup() {
           <MonoLabel>{entityTypes("character")}</MonoLabel>
         </div>
         <div className="text-sm font-medium text-canvas">{t("character")}</div>
-        <div className="mt-0.5 text-xs text-body-muted">{t("characterMeta")}</div>
+        <div className="mt-0.5 text-xs text-body-muted">
+          {t("characterMeta")}
+        </div>
       </div>
 
       <div className="absolute end-[8%] top-[12%] w-36 rounded-sm border border-product-dark-border bg-product-dark p-3">
@@ -95,7 +114,9 @@ function CanvasMockup() {
           <MonoLabel>{entityTypes("location")}</MonoLabel>
         </div>
         <div className="text-sm font-medium text-canvas">{t("location")}</div>
-        <div className="mt-0.5 text-xs text-body-muted">{t("locationMeta")}</div>
+        <div className="mt-0.5 text-xs text-body-muted">
+          {t("locationMeta")}
+        </div>
       </div>
 
       <div className="absolute start-[22%] bottom-[18%] w-40 rounded-sm border border-product-dark-border bg-product-dark p-3">
@@ -111,11 +132,16 @@ function CanvasMockup() {
           {entityTypes("timelineEvent")}
         </div>
         <div className="text-sm font-medium text-canvas">{t("event")}</div>
-        <div className="mt-0.5 text-xs text-pale-green/50">{t("eventMeta")}</div>
+        <div className="mt-0.5 text-xs text-pale-green/50">
+          {t("eventMeta")}
+        </div>
       </div>
 
       <div className="absolute bottom-4 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 flex items-center gap-2 rounded-full border border-product-dark-border bg-product-dark/90 px-3 py-1.5 backdrop-blur-sm">
-        <span className="h-1.5 w-1.5 rounded-full bg-pale-green animate-pulse" aria-hidden="true" />
+        <span
+          className="h-1.5 w-1.5 rounded-full bg-pale-green animate-pulse"
+          aria-hidden="true"
+        />
         <span className="font-mono text-[10px] text-muted">{t("status")}</span>
       </div>
     </div>
@@ -127,13 +153,13 @@ function AnnouncementBar() {
   return (
     <div className="flex h-9 items-center justify-center gap-2 bg-primary px-4">
       <span className="text-xs text-canvas/70">{t("announcement")}</span>
-      <a
-        href="#"
+      <Link
+        href={ROUTES.signUp}
         className="text-xs text-canvas underline-offset-2 hover:underline inline-flex items-center gap-1"
       >
         {t("announcementLink")}
         <ArrowRight className="h-3 w-3 rtl:rotate-180" aria-hidden="true" />
-      </a>
+      </Link>
     </div>
   );
 }
@@ -145,15 +171,22 @@ function Hero() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col items-center text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border-light px-4 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-deep-green" aria-hidden="true" />
-            <span className="font-mono text-xs text-body-muted">{t("eyebrow")}</span>
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-deep-green"
+              aria-hidden="true"
+            />
+            <span className="font-mono text-xs text-body-muted">
+              {t("eyebrow")}
+            </span>
           </div>
 
           <h1 className="font-display text-6xl italic font-light leading-none tracking-tight text-primary sm:text-7xl lg:text-8xl">
             {t("headline")}
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-body-muted">{t("sub")}</p>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-body-muted">
+            {t("sub")}
+          </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -161,7 +194,10 @@ function Hero() {
               className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-medium text-canvas transition-colors hover:bg-primary/90"
             >
               {t("cta")}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+              <ArrowRight
+                className="h-4 w-4 rtl:rotate-180"
+                aria-hidden="true"
+              />
             </Link>
             <a
               href="#features"
@@ -218,7 +254,9 @@ function CharactersFeature() {
             <h2 className="font-display text-5xl italic font-light leading-tight text-primary">
               {t("heading")}
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-body-muted">{t("body")}</p>
+            <p className="mt-6 text-lg leading-relaxed text-body-muted">
+              {t("body")}
+            </p>
           </div>
 
           <div className="rounded-md border border-border-light bg-canvas p-6">
@@ -228,20 +266,34 @@ function CharactersFeature() {
               </div>
               <div>
                 <MonoLabel>{entityTypes("character")}</MonoLabel>
-                <div className="text-base font-medium text-primary">{heroMockup("character")}</div>
+                <div className="text-base font-medium text-primary">
+                  {heroMockup("character")}
+                </div>
               </div>
             </div>
             <div className="flex flex-col gap-3">
               {(["role", "age", "backstory"] as const).map((key) => (
-                <div key={key} className="flex gap-3 border-t border-card-border pt-3">
-                  <span className="w-20 shrink-0 text-xs text-muted">{t(`card.${key}`)}</span>
-                  <span className="text-sm text-ink">{t(`card.${key}Value`)}</span>
+                <div
+                  key={key}
+                  className="flex gap-3 border-t border-card-border pt-3"
+                >
+                  <span className="w-20 shrink-0 text-xs text-muted">
+                    {t(`card.${key}`)}
+                  </span>
+                  <span className="text-sm text-ink">
+                    {t(`card.${key}Value`)}
+                  </span>
                 </div>
               ))}
             </div>
             <div className="mt-4 flex items-center gap-2 rounded-sm bg-pale-green px-3 py-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-deep-green" aria-hidden="true" />
-              <span className="text-xs text-deep-green">{t("card.aiHint")}</span>
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-deep-green"
+                aria-hidden="true"
+              />
+              <span className="text-xs text-deep-green">
+                {t("card.aiHint")}
+              </span>
             </div>
           </div>
         </div>
@@ -263,7 +315,9 @@ function CanvasFeature() {
           <h2 className="font-display text-5xl italic font-light leading-tight text-canvas">
             {t("heading")}
           </h2>
-          <p className="mt-6 text-lg leading-relaxed text-pale-green/70">{t("body")}</p>
+          <p className="mt-6 text-lg leading-relaxed text-pale-green/70">
+            {t("body")}
+          </p>
         </div>
 
         <div className="mt-16 grid gap-4 sm:grid-cols-3">
@@ -278,7 +332,10 @@ function CanvasFeature() {
               key={key}
               className="rounded-sm border border-deep-green-border bg-deep-green-deep px-6 py-5"
             >
-              <span className="mb-3 block text-sm text-pale-green/40" aria-hidden="true">
+              <span
+                className="mb-3 block text-sm text-pale-green/40"
+                aria-hidden="true"
+              >
                 {icon}
               </span>
               <p className="text-base text-canvas">{t(key)}</p>
@@ -296,7 +353,9 @@ function CanvasFeature() {
             }}
           >
             <div className="flex items-center gap-3">
-              {(["character", "location", "faction", "timelineEvent"] as const).map((key, i) => (
+              {(
+                ["character", "location", "faction", "timelineEvent"] as const
+              ).map((key, i) => (
                 <div
                   key={key}
                   className="rounded-sm border border-deep-green-border bg-deep-green-deep px-3 py-2 text-center"
@@ -337,7 +396,9 @@ function TimelineFeature() {
                     <div
                       className={`mt-1 h-2 w-2 rounded-full shrink-0 ${accent ? "bg-primary" : "bg-hairline"}`}
                     />
-                    {i < events.length - 1 && <div className="w-px flex-1 bg-border-light" />}
+                    {i < events.length - 1 && (
+                      <div className="w-px flex-1 bg-border-light" />
+                    )}
                   </div>
                   <div className="pb-5">
                     <MonoLabel>{t(`events.${dayKey}`)}</MonoLabel>
@@ -359,7 +420,9 @@ function TimelineFeature() {
             <h2 className="font-display text-5xl italic font-light leading-tight text-primary">
               {t("heading")}
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-body-muted">{t("body")}</p>
+            <p className="mt-6 text-lg leading-relaxed text-body-muted">
+              {t("body")}
+            </p>
           </div>
         </div>
       </div>
@@ -380,7 +443,9 @@ function EntityGrid() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(["character", "location", "faction", "scene", "event"] as const).map((type) => {
+          {(
+            ["character", "location", "faction", "scene", "event"] as const
+          ).map((type) => {
             const Icon = ENTITY_ICONS[type];
             return (
               <div
@@ -390,15 +455,119 @@ function EntityGrid() {
                 <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-sm bg-soft-stone">
                   <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
-                <div className="mb-1 text-base font-medium text-primary">{t(`${type}.name`)}</div>
-                <p className="text-sm leading-relaxed text-body-muted">{t(`${type}.desc`)}</p>
+                <div className="mb-1 text-base font-medium text-primary">
+                  {t(`${type}.name`)}
+                </div>
+                <p className="text-sm leading-relaxed text-body-muted">
+                  {t(`${type}.desc`)}
+                </p>
               </div>
             );
           })}
 
           <div className="flex flex-col items-start justify-end rounded-sm border border-dashed border-hairline bg-transparent px-6 py-6">
-            <div className="mb-1 text-base font-medium text-muted">{t("more")}</div>
+            <div className="mb-1 text-base font-medium text-muted">
+              {t("more")}
+            </div>
             <p className="text-sm text-muted">{t("moreDesc")}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection() {
+  const t = useTranslations("Marketing.pricing");
+  const freeFeatures = ["f1", "f2", "f3", "f4"] as const;
+  const proFeatures = ["f1", "f2", "f3", "f4", "f5"] as const;
+
+  return (
+    <section id="pricing" className="bg-canvas py-24 lg:py-32">
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="mx-auto mb-16 max-w-xl text-center">
+          <div className="mb-3 font-mono text-xs uppercase tracking-widest text-coral">
+            {t("eyebrow")}
+          </div>
+          <h2 className="font-display text-5xl italic font-light leading-tight text-primary">
+            {t("heading")}
+          </h2>
+          <p className="mt-4 text-lg text-body-muted">{t("sub")}</p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Free */}
+          <div className="flex flex-col rounded-lg border border-hairline bg-canvas p-8">
+            <div className="text-base font-medium text-primary">
+              {t("free.name")}
+            </div>
+            <div className="mt-3 flex items-baseline gap-1.5">
+              <span className="text-4xl font-medium text-primary">
+                {t("free.price")}
+              </span>
+              <span className="text-sm text-body-muted">
+                {t("free.period")}
+              </span>
+            </div>
+            <ul className="mt-6 flex flex-1 flex-col gap-3">
+              {freeFeatures.map((f) => (
+                <li
+                  key={f}
+                  className="flex items-start gap-2.5 text-sm text-body"
+                >
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span>{t(`free.${f}`)}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={ROUTES.signUp}
+              className="mt-8 inline-flex items-center justify-center rounded-full border border-primary px-6 py-3 text-sm font-medium text-primary transition-colors hover:bg-soft-stone"
+            >
+              {t("free.cta")}
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="flex flex-col rounded-lg border-2 border-primary bg-canvas p-8">
+            <div className="flex items-center justify-between">
+              <div className="text-base font-medium text-primary">
+                {t("pro.name")}
+              </div>
+              <span className="rounded-full bg-deep-green px-3 py-1 text-[11px] font-medium text-pale-green">
+                {t("pro.badge")}
+              </span>
+            </div>
+            <div className="mt-3 text-sm text-body-muted">
+              {t("pro.priceNote")}
+            </div>
+            <ul className="mt-6 flex flex-1 flex-col gap-3">
+              {proFeatures.map((f) => (
+                <li
+                  key={f}
+                  className="flex items-start gap-2.5 text-sm text-body"
+                >
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span>{t(`pro.${f}`)}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={ROUTES.signUp}
+              className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-canvas transition-colors hover:bg-primary/90"
+            >
+              {t("pro.cta")}
+              <ArrowRight
+                className="h-4 w-4 rtl:rotate-180"
+                aria-hidden="true"
+              />
+            </Link>
           </div>
         </div>
       </div>
@@ -422,16 +591,24 @@ function CtaSection() {
               className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-canvas transition-colors hover:bg-primary/90"
             >
               {t("cta")}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+              <ArrowRight
+                className="h-4 w-4 rtl:rotate-180"
+                aria-hidden="true"
+              />
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
-            {(["guarantee1", "guarantee2", "guarantee3"] as const).map((key) => (
-              <div key={key} className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-deep-green" aria-hidden="true" />
-                <span className="text-sm text-body-muted">{t(key)}</span>
-              </div>
-            ))}
+            {(["guarantee1", "guarantee2", "guarantee3"] as const).map(
+              (key) => (
+                <div key={key} className="flex items-center gap-2">
+                  <CheckCircle2
+                    className="h-4 w-4 text-deep-green"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm text-body-muted">{t(key)}</span>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -449,6 +626,7 @@ export default function MarketingPage() {
       <CanvasFeature />
       <TimelineFeature />
       <EntityGrid />
+      <PricingSection />
       <CtaSection />
     </main>
   );

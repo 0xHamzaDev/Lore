@@ -1,6 +1,7 @@
 # File-Based Routing
 
 ## Stack
+
 - **Framework**: Next.js 15 (App Router)
 - **Monorepo**: Turborepo
 - **Language**: TypeScript 5
@@ -42,44 +43,45 @@ packages/
 
 ## Route Group Conventions
 
-| Group | Purpose | Auth Required |
-|---|---|---|
-| `(marketing)` | Public marketing & docs | No |
-| `(dashboard)` | Product shell | Yes — redirects to `/login` |
-| `(auth)` | Login, register, verify | No — redirects to `/dashboard` if authed |
+| Group         | Purpose                 | Auth Required                            |
+| ------------- | ----------------------- | ---------------------------------------- |
+| `(marketing)` | Public marketing & docs | No                                       |
+| `(dashboard)` | Product shell           | Yes — redirects to `/login`              |
+| `(auth)`      | Login, register, verify | No — redirects to `/dashboard` if authed |
 
 ## File Naming
 
-| File | Purpose |
-|---|---|
-| `page.tsx` | Leaf page component |
-| `layout.tsx` | Persistent shell wrapping child pages |
-| `loading.tsx` | Suspense skeleton shown during navigation |
-| `error.tsx` | Error boundary for that segment |
-| `not-found.tsx` | 404 handler |
-| `route.ts` | API route handler (GET, POST, …) |
+| File            | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| `page.tsx`      | Leaf page component                       |
+| `layout.tsx`    | Persistent shell wrapping child pages     |
+| `loading.tsx`   | Suspense skeleton shown during navigation |
+| `error.tsx`     | Error boundary for that segment           |
+| `not-found.tsx` | 404 handler                               |
+| `route.ts`      | API route handler (GET, POST, …)          |
 
 ## Segment Patterns
 
-| Pattern | Example | Use |
-|---|---|---|
-| `[id]` | `projects/[id]/page.tsx` | Single dynamic segment |
-| `[...slug]` | `docs/[...slug]/page.tsx` | Catch-all (docs, blog) |
-| `(group)` | `(dashboard)/layout.tsx` | Route group — no URL segment |
-| `_folder` | `_components/` | Private — not routable |
+| Pattern     | Example                   | Use                          |
+| ----------- | ------------------------- | ---------------------------- |
+| `[id]`      | `projects/[id]/page.tsx`  | Single dynamic segment       |
+| `[...slug]` | `docs/[...slug]/page.tsx` | Catch-all (docs, blog)       |
+| `(group)`   | `(dashboard)/layout.tsx`  | Route group — no URL segment |
+| `_folder`   | `_components/`            | Private — not routable       |
 
 ## Middleware
 
 ```ts
 // apps/web/middleware.ts
-export { auth as middleware } from "@packages/auth"
+export { auth as middleware } from "@packages/auth";
 
 export const config = {
   matcher: ["/((?!_next|api|favicon|_vercel).*)"],
-}
+};
 ```
 
 Execution order:
+
 1. Locale detection → redirect `/` → `/ar` (default) or `/en`
 2. Auth check → unauthenticated `(dashboard)` → `/[locale]/login`
 3. Auth check → authenticated `(auth)` → `/[locale]/dashboard`

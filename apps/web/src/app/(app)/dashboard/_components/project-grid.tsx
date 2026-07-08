@@ -3,10 +3,21 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { QK } from "@lore/utils";
-import { EmptyState, ErrorState, Button, Skeleton } from "@lore/ui";
+import {
+  EmptyState,
+  ErrorState,
+  Button,
+  Skeleton,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@lore/ui";
 import type { Project } from "@lore/db";
 import { listProjects, deleteProject } from "../_actions";
 import { ProjectCard } from "./project-card";
@@ -32,6 +43,8 @@ export function ProjectGrid({ orgId, isPro }: ProjectGridProps) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const [renameTarget, setRenameTarget] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: QK.projects.list(orgId),
@@ -42,12 +55,16 @@ export function ProjectGrid({ orgId, isPro }: ProjectGridProps) {
     },
   });
 
-  async function handleDelete(project: Project) {
-    const result = await deleteProject({ projectId: project.id, orgId });
+  async function confirmDelete() {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    const result = await deleteProject({ projectId: deleteTarget.id, orgId });
+    setIsDeleting(false);
     if (!result.success) {
       toast.error(t("Common.error"));
       return;
     }
+    setDeleteTarget(null);
     queryClient.invalidateQueries({ queryKey: QK.projects.list(orgId) });
   }
 
@@ -86,7 +103,7 @@ export function ProjectGrid({ orgId, isPro }: ProjectGridProps) {
             key={project.id}
             project={project}
             onRename={setRenameTarget}
-            onDelete={handleDelete}
+            onDelete={setDeleteTarget}
           />
         ))}
       </div>
@@ -98,11 +115,53 @@ export function ProjectGrid({ orgId, isPro }: ProjectGridProps) {
           open={!!renameTarget}
           onClose={() => setRenameTarget(null)}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: QK.projects.list(orgId) });
+            queryClient.invalidateQueries({
+              queryKey: QK.projects.list(orgId),
+            });
             setRenameTarget(null);
           }}
         />
       ) : null}
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => {
+          if (!v && !isDeleting) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Projects.delete")}</DialogTitle>
+            <DialogDescription>{t("Projects.deleteConfirm")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={isDeleting}
+            >
+              {t("Common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void confirmDelete()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                  {t("Projects.deleting")}
+                </>
+              ) : (
+                t("Common.delete")
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

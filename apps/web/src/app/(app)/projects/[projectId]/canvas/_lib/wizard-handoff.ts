@@ -23,7 +23,10 @@ export function takeWizardBrief(projectId: string): WizardBrief | null {
     if (!raw) return null;
     sessionStorage.removeItem(KEY(projectId));
     const parsed = JSON.parse(raw) as Partial<WizardBrief>;
-    if (typeof parsed.brief !== "string" || (parsed.locale !== "ar" && parsed.locale !== "en")) {
+    if (
+      typeof parsed.brief !== "string" ||
+      (parsed.locale !== "ar" && parsed.locale !== "en")
+    ) {
       return null;
     }
     return { brief: parsed.brief, locale: parsed.locale };

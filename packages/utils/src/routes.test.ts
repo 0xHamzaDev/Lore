@@ -3,7 +3,9 @@ import { ROUTES } from "./routes";
 
 describe("ROUTES.projects.canvas", () => {
   it("returns the canvas path for a given project id", () => {
-    expect(ROUTES.projects.canvas("proj_abc123")).toBe("/projects/proj_abc123/canvas");
+    expect(ROUTES.projects.canvas("proj_abc123")).toBe(
+      "/projects/proj_abc123/canvas",
+    );
   });
 
   it("includes the project id verbatim", () => {

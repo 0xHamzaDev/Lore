@@ -5,7 +5,10 @@ export default tseslint.config(...tseslint.configs.recommended, {
   files: ["**/*.{ts,tsx,js,jsx}"],
   rules: {
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-    "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      { prefer: "type-imports" },
+    ],
     "@typescript-eslint/no-explicit-any": "error",
   },
 });

@@ -53,7 +53,11 @@ export function BillingPanel({ orgId, state }: Props) {
 
   if (state === "free" || state === "past_due") {
     return (
-      <Button onClick={handleUpgrade} disabled={isUpgrading} className="self-start">
+      <Button
+        onClick={handleUpgrade}
+        disabled={isUpgrading}
+        className="self-start"
+      >
         {isUpgrading ? t("ctas.upgrading") : t("ctas.upgrade")}
       </Button>
     );
@@ -62,14 +66,20 @@ export function BillingPanel({ orgId, state }: Props) {
   if (state === "active") {
     return (
       <>
-        <Button variant="outline" onClick={() => setConfirmOpen(true)} className="self-start">
+        <Button
+          variant="outline"
+          onClick={() => setConfirmOpen(true)}
+          className="self-start"
+        >
           {t("ctas.cancel")}
         </Button>
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("cancelDialog.title")}</DialogTitle>
-              <DialogDescription>{t("cancelDialog.description")}</DialogDescription>
+              <DialogDescription>
+                {t("cancelDialog.description")}
+              </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button
@@ -79,8 +89,14 @@ export function BillingPanel({ orgId, state }: Props) {
               >
                 {t("cancelDialog.dismiss")}
               </Button>
-              <Button variant="destructive" onClick={handleCancel} disabled={isCancelling}>
-                {isCancelling ? t("ctas.cancelling") : t("cancelDialog.confirm")}
+              <Button
+                variant="destructive"
+                onClick={handleCancel}
+                disabled={isCancelling}
+              >
+                {isCancelling
+                  ? t("ctas.cancelling")
+                  : t("cancelDialog.confirm")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -91,7 +107,11 @@ export function BillingPanel({ orgId, state }: Props) {
 
   // state === "cancelled" — keep access; offer Reactivate (re-runs the same upgrade flow).
   return (
-    <Button onClick={handleUpgrade} disabled={isUpgrading} className="self-start">
+    <Button
+      onClick={handleUpgrade}
+      disabled={isUpgrading}
+      className="self-start"
+    >
       {isUpgrading ? t("ctas.upgrading") : t("ctas.reactivate")}
     </Button>
   );

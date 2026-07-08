@@ -19,34 +19,34 @@ All data mutations and privileged reads are performed through **Server Actions**
 
 ```ts
 // _actions.ts
-"use server"
+"use server";
 
-import { db } from "@packages/db"
-import { projects } from "@packages/db/schema"
-import { insertProjectSchema } from "@packages/db/schema/projects"
-import { auth } from "@packages/auth"
-import { revalidatePath } from "next/cache"
-import type { ActionResult } from "@packages/utils/types"
+import { db } from "@packages/db";
+import { projects } from "@packages/db/schema";
+import { insertProjectSchema } from "@packages/db/schema/projects";
+import { auth } from "@packages/auth";
+import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@packages/utils/types";
 
 export async function createProjectAction(
-  input: unknown
+  input: unknown,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await auth()
-    if (!session) return { success: false, error: "Unauthorized" }
+    const session = await auth();
+    if (!session) return { success: false, error: "Unauthorized" };
 
-    const data = insertProjectSchema.parse(input)
+    const data = insertProjectSchema.parse(input);
 
     const [project] = await db
       .insert(projects)
       .values({ ...data, orgId: session.orgId, createdById: session.userId })
-      .returning({ id: projects.id })
+      .returning({ id: projects.id });
 
-    revalidatePath("/projects")
-    return { success: true, data: { id: project.id } }
+    revalidatePath("/projects");
+    return { success: true, data: { id: project.id } };
   } catch (err) {
-    console.error("[createProjectAction]", err)
-    return { success: false, error: "Failed to create project." }
+    console.error("[createProjectAction]", err);
+    return { success: false, error: "Failed to create project." };
   }
 }
 ```
@@ -57,46 +57,50 @@ export async function createProjectAction(
 // packages/utils/src/types.ts
 export type ActionResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string }
+  | { success: false; error: string };
 ```
 
 ### Auth Guard Helper
 
 ```ts
 // packages/auth/src/guard.ts
-import { auth } from "."
-import type { Session } from "."
+import { auth } from ".";
+import type { Session } from ".";
 
 export async function requireAuth(): Promise<Session> {
-  const session = await auth()
-  if (!session) throw new Error("Unauthorized")
-  return session
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+  return session;
 }
 ```
 
 Use `requireAuth()` inside actions to reduce boilerplate:
 
 ```ts
-const session = await requireAuth()
+const session = await requireAuth();
 ```
 
 ### Permission Check
 
 ```ts
 // packages/auth/src/permissions.ts
-export async function requireRole(orgId: string, minRole: "member" | "admin" | "owner") {
-  const session = await requireAuth()
-  const membership = await getMembership(session.userId, orgId)
+export async function requireRole(
+  orgId: string,
+  minRole: "member" | "admin" | "owner",
+) {
+  const session = await requireAuth();
+  const membership = await getMembership(session.userId, orgId);
   if (!hasRole(membership.role, minRole)) {
-    throw new Error("Insufficient permissions")
+    throw new Error("Insufficient permissions");
   }
-  return session
+  return session;
 }
 ```
 
 ## API Route Handlers
 
 Use `route.ts` only for:
+
 - Webhook receivers (Stripe, Clerk, etc.)
 - OAuth callbacks
 - AI streaming endpoints
@@ -104,14 +108,14 @@ Use `route.ts` only for:
 
 ```ts
 // app/api/webhooks/stripe/route.ts
-import { NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text()
-  const sig  = req.headers.get("stripe-signature") ?? ""
+  const body = await req.text();
+  const sig = req.headers.get("stripe-signature") ?? "";
   // ... verify + handle
-  return NextResponse.json({ received: true })
+  return NextResponse.json({ received: true });
 }
 ```
 
@@ -119,23 +123,23 @@ export async function POST(req: NextRequest) {
 
 ```ts
 // app/api/chat/route.ts
-import { streamText } from "ai"
-import { anthropic } from "@ai-sdk/anthropic"
-import { auth } from "@packages/auth"
+import { streamText } from "ai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { auth } from "@packages/auth";
 
 export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session) return new Response("Unauthorized", { status: 401 })
+  const session = await auth();
+  if (!session) return new Response("Unauthorized", { status: 401 });
 
-  const { messages } = await req.json()
+  const { messages } = await req.json();
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-20250514"),
     system: "You are a helpful assistant.",
     messages,
-  })
+  });
 
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse();
 }
 ```
 
@@ -145,15 +149,15 @@ For reads shared across multiple Server Actions or RSC pages, define query funct
 
 ```ts
 // packages/db/src/queries/projects.ts
-import { db } from "../client"
-import { projects } from "../schema"
-import { and, eq, isNull } from "drizzle-orm"
+import { db } from "../client";
+import { projects } from "../schema";
+import { and, eq, isNull } from "drizzle-orm";
 
 export async function getProjectsByOrg(orgId: string) {
   return db.query.projects.findMany({
     where: and(eq(projects.orgId, orgId), isNull(projects.deletedAt)),
     orderBy: (t, { desc }) => desc(t.createdAt),
-  })
+  });
 }
 ```
 
@@ -166,9 +170,9 @@ Import directly in RSC pages or inside Server Actions.
 export class AppError extends Error {
   constructor(
     message: string,
-    public code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION" | "INTERNAL"
+    public code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION" | "INTERNAL",
   ) {
-    super(message)
+    super(message);
   }
 }
 ```
@@ -180,7 +184,7 @@ Catch `AppError` in actions and map to user-friendly messages. Let unknown error
 Use structured logging in all server functions:
 
 ```ts
-console.error("[actionName]", { orgId, userId, error: err })
+console.error("[actionName]", { orgId, userId, error: err });
 ```
 
 Format: `[functionName] { contextKeys }`. Never log PII (email, full names, tokens).

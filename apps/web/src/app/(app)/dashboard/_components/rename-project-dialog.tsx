@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,8 +24,7 @@ import {
 import type { Project } from "@lore/db";
 import { renameProject } from "../_actions";
 
-const schema = z.object({ name: z.string().min(1) });
-type FormValues = z.infer<typeof schema>;
+type FormValues = { name: string };
 
 interface RenameProjectDialogProps {
   project: Project;
@@ -43,6 +42,12 @@ export function RenameProjectDialog({
   onSuccess,
 }: RenameProjectDialogProps) {
   const t = useTranslations();
+  const tv = useTranslations("Validation");
+  const schema = useMemo(
+    () =>
+      z.object({ name: z.string().min(1, { message: tv("nameRequired") }) }),
+    [tv],
+  );
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: project.name },
@@ -75,7 +80,10 @@ export function RenameProjectDialog({
           <DialogTitle>{t("Projects.renameTitle")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-4 flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="name"

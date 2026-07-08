@@ -2,10 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@lore/ai", () => ({
   generateModelObject: vi.fn(),
-  MODELS: { sonnet: "claude-sonnet-4-6", opus: "claude-opus-4-7", haiku: "claude-haiku-4-5" },
+  MODELS: {
+    sonnet: "claude-sonnet-4-6",
+    opus: "claude-opus-4-7",
+    haiku: "claude-haiku-4-5",
+  },
 }));
 
-const { runContinuityAgent, buildContinuityPrompt } = await import("./continuity");
+const { runContinuityAgent, buildContinuityPrompt } =
+  await import("./continuity");
 const { generateModelObject } = await import("@lore/ai");
 
 beforeEach(() => vi.clearAllMocks());
@@ -34,7 +39,9 @@ describe("buildContinuityPrompt", () => {
 
 describe("runContinuityAgent", () => {
   it("returns parsed findings and model metadata", async () => {
-    (generateModelObject as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      generateModelObject as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       object: {
         findings: [
           {
@@ -62,13 +69,19 @@ describe("runContinuityAgent", () => {
   });
 
   it("returns empty findings when the model returns []", async () => {
-    (generateModelObject as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (
+      generateModelObject as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       object: { findings: [] },
       usage: { inputTokens: 50, outputTokens: 5 },
       latencyMs: 100,
     });
 
-    const out = await runContinuityAgent({ projectId: "p", branchId: "b", entities: [] });
+    const out = await runContinuityAgent({
+      projectId: "p",
+      branchId: "b",
+      entities: [],
+    });
     expect(out.findings).toEqual([]);
   });
 });

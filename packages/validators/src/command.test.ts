@@ -8,7 +8,11 @@ describe("commandIntentSchema", () => {
       entities: [
         {
           entityType: "character",
-          data: { name: "Ahmad", bio: "A detective in Riyadh.", role: "detective" },
+          data: {
+            name: "Ahmad",
+            bio: "A detective in Riyadh.",
+            role: "detective",
+          },
         },
       ],
     });
@@ -16,7 +20,10 @@ describe("commandIntentSchema", () => {
   });
 
   it("rejects a create intent with zero entities", () => {
-    const out = commandIntentSchema.safeParse({ intent: "create", entities: [] });
+    const out = commandIntentSchema.safeParse({
+      intent: "create",
+      entities: [],
+    });
     expect(out.success).toBe(false);
   });
 
@@ -56,13 +63,17 @@ describe("commandIntentSchema", () => {
       intent: "edit",
       destructive: false,
       summary: "x",
-      operations: [{ op: "rename", entityId: "x", entityType: "character", to: "y" }],
+      operations: [
+        { op: "rename", entityId: "x", entityType: "character", to: "y" },
+      ],
     });
     expect(out.success).toBe(false);
   });
 
   it("parses a query intent (payload-less)", () => {
-    expect(commandIntentSchema.safeParse({ intent: "query" }).success).toBe(true);
+    expect(commandIntentSchema.safeParse({ intent: "query" }).success).toBe(
+      true,
+    );
   });
 
   it("parses an agent_trigger intent", () => {
@@ -88,7 +99,13 @@ describe("commandIntentSchema", () => {
       destructive: false,
       summary: "x",
       operations: [
-        { op: "patch", entityId: "x", entityType: "weapon", field: "f", suggestedValue: "v" },
+        {
+          op: "patch",
+          entityId: "x",
+          entityType: "weapon",
+          field: "f",
+          suggestedValue: "v",
+        },
       ],
     });
     expect(out.success).toBe(false);

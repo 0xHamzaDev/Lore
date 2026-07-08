@@ -50,7 +50,9 @@ export function buildDialoguePrompt(input: {
   return { system, prompt };
 }
 
-export async function runDialogueAgent(input: DialogueInput): Promise<DialogueResult> {
+export async function runDialogueAgent(
+  input: DialogueInput,
+): Promise<DialogueResult> {
   const model = input.model ?? MODELS.sonnet;
   const { system, prompt } = buildDialoguePrompt(input);
 

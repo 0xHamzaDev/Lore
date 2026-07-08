@@ -64,14 +64,14 @@ Start with the RSC page fetching data directly:
 
 ```tsx
 export default async function ProjectsPage() {
-  const session = await auth()
-  const rows = await getProjectsByOrg(session.orgId)
+  const session = await auth();
+  const rows = await getProjectsByOrg(session.orgId);
   return (
     <div className="p-6 lg:p-8 flex flex-col gap-8">
       <PageHeader title="Projects" action={<CreateProjectButton />} />
       <ProjectList projects={rows} />
     </div>
-  )
+  );
 }
 ```
 
@@ -86,21 +86,21 @@ In `_components/`. Keep components small and single-purpose.
 
 ```tsx
 // _components/create-project-form.tsx
-"use client"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { insertProjectSchema } from "@packages/db/schema/projects"
-import { useCreateProject } from "../_hooks/use-create-project"
+"use client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertProjectSchema } from "@packages/db/schema/projects";
+import { useCreateProject } from "../_hooks/use-create-project";
 
 export function CreateProjectForm({ onSuccess }: { onSuccess: () => void }) {
-  const form = useForm({ resolver: zodResolver(insertProjectSchema) })
-  const { mutate, isPending } = useCreateProject()
+  const form = useForm({ resolver: zodResolver(insertProjectSchema) });
+  const { mutate, isPending } = useCreateProject();
 
   return (
     <form onSubmit={form.handleSubmit((data) => mutate(data, { onSuccess }))}>
       {/* fields */}
     </form>
-  )
+  );
 }
 ```
 
@@ -120,19 +120,19 @@ In `_hooks/`. Wrap the Server Action and handle cache invalidation.
 
 ```ts
 // _hooks/use-create-project.ts
-"use client"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { QK } from "@packages/utils/query-keys"
-import { createProjectAction } from "../_actions"
+"use client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QK } from "@packages/utils/query-keys";
+import { createProjectAction } from "../_actions";
 
 export function useCreateProject() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: createProjectAction,
     onSuccess: (result) => {
-      if (result.success) qc.invalidateQueries({ queryKey: QK.projects.list })
+      if (result.success) qc.invalidateQueries({ queryKey: QK.projects.list });
     },
-  })
+  });
 }
 ```
 
@@ -175,10 +175,10 @@ Before marking a feature complete:
 
 ## Shared vs Feature-Local
 
-| Code | Location |
-|---|---|
-| Reused across 2+ features | `packages/ui` or `packages/utils` |
-| Reused within one feature | `_components/` or `_hooks/` |
+| Code                      | Location                                       |
+| ------------------------- | ---------------------------------------------- |
+| Reused across 2+ features | `packages/ui` or `packages/utils`              |
+| Reused within one feature | `_components/` or `_hooks/`                    |
 | One-off for a single page | Inline in `page.tsx` or a small colocated file |
 
 Avoid premature abstraction — only move to `packages/` when the second feature needs it.

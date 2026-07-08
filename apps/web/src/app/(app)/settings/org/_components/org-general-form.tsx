@@ -64,15 +64,19 @@ export function OrgGeneralForm({
       form.reset({ name: result.data.name });
       router.refresh();
     } else {
-      toast.error(result.error);
+      toast.error(tCommon("error"));
     }
   }
 
-  const locale = typeof document !== "undefined" ? document.documentElement.lang : "ar";
+  const locale =
+    typeof document !== "undefined" ? document.documentElement.lang : "ar";
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-6"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -105,7 +109,10 @@ export function OrgGeneralForm({
 
         {canEdit ? (
           <div className="flex justify-end">
-            <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting || !form.formState.isDirty}
+            >
               {tCommon("save")}
             </Button>
           </div>

@@ -14,13 +14,17 @@ export async function GET(req: Request): Promise<Response> {
   // 401 rather than requireAuth()'s page-oriented redirect to /sign-in (which
   // would hand a fetch() caller an HTML body it can't parse).
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!session)
+    return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const projectId = url.searchParams.get("projectId");
   const branchId = url.searchParams.get("branchId");
   if (!projectId || !branchId) {
-    return Response.json({ error: "missing projectId or branchId" }, { status: 400 });
+    return Response.json(
+      { error: "missing projectId or branchId" },
+      { status: 400 },
+    );
   }
 
   // Resolve org from the project so we can role-check.
@@ -32,7 +36,8 @@ export async function GET(req: Request): Promise<Response> {
   if (!project) return Response.json({ error: "not_found" }, { status: 404 });
 
   const role = await requireOrgRole(project.orgId, "viewer");
-  if (!role.success) return Response.json({ error: "forbidden" }, { status: 403 });
+  if (!role.success)
+    return Response.json({ error: "forbidden" }, { status: 403 });
 
   // Free orgs get a static teaser — no count, no findings (no runs happen).
   const sub = await requireSubscription(project.orgId);

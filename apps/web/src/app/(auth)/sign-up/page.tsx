@@ -11,7 +11,9 @@ export default function SignUpPage() {
   return (
     <div className="rounded-lg border border-border-light bg-canvas p-8 sm:p-10">
       <div className="flex flex-col gap-1.5 pb-6">
-        <h1 className="text-2xl font-medium tracking-tight text-primary">{t("signUpTitle")}</h1>
+        <h1 className="text-2xl font-medium tracking-tight text-primary">
+          {t("signUpTitle")}
+        </h1>
         <p className="text-sm text-body-muted">{t("signUpSubtitle")}</p>
       </div>
 

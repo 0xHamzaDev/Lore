@@ -21,15 +21,20 @@ interface InvitationsListProps {
   canManage: boolean;
 }
 
-export function InvitationsList({ orgId, invitations, canManage }: InvitationsListProps) {
+export function InvitationsList({
+  orgId,
+  invitations,
+  canManage,
+}: InvitationsListProps) {
   const t = useTranslations("Settings.org");
+  const tCommon = useTranslations("Common");
   const [isPending, startTransition] = useTransition();
 
   function handleCancel(invitationId: string) {
     startTransition(async () => {
       const result = await cancelInvitationAction({ orgId, invitationId });
       if (result.success) toast.success(t("invitationRevoked"));
-      else toast.error(result.error);
+      else toast.error(tCommon("error"));
     });
   }
 
@@ -45,8 +50,12 @@ export function InvitationsList({ orgId, invitations, canManage }: InvitationsLi
             <Mail className="h-4 w-4 text-body-muted" aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-primary">{invite.email}</p>
-            <p className="truncate text-xs text-body-muted">{t(`roles.${invite.role}`)}</p>
+            <p className="truncate text-sm font-medium text-primary">
+              {invite.email}
+            </p>
+            <p className="truncate text-xs text-body-muted">
+              {t(`roles.${invite.role}`)}
+            </p>
           </div>
           <Badge variant="outline">{t("invitations")}</Badge>
           {canManage ? (

@@ -11,7 +11,9 @@ export interface EntityUpdatedArgs {
 
 // Fire-and-forget — never throws. An Inngest send failure must not break the
 // user's mutation; the worst case is one missed debounce cycle.
-export async function emitEntityUpdated(args: EntityUpdatedArgs): Promise<void> {
+export async function emitEntityUpdated(
+  args: EntityUpdatedArgs,
+): Promise<void> {
   try {
     await inngest.send({ name: "entity.updated", data: args });
   } catch (err) {

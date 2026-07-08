@@ -38,10 +38,12 @@ export async function upsertFindings(input: UpsertInput): Promise<void> {
       ),
     );
 
-  const keyOf = (entityId: string | null, message: string) => `${entityId ?? ""}::${message}`;
+  const keyOf = (entityId: string | null, message: string) =>
+    `${entityId ?? ""}::${message}`;
 
   const existingByKey = new Map<string, (typeof existing)[number]>();
-  for (const row of existing) existingByKey.set(keyOf(row.entityId, row.message), row);
+  for (const row of existing)
+    existingByKey.set(keyOf(row.entityId, row.message), row);
 
   const inserts: NewAgentFinding[] = [];
   const reopens: string[] = [];
@@ -85,13 +87,22 @@ export async function upsertFindings(input: UpsertInput): Promise<void> {
   for (const id of reopens) {
     await db
       .update(agentFindings)
-      .set({ status: "open", resolvedAt: null, updatedAt: new Date(), aiRunId: input.aiRunId })
+      .set({
+        status: "open",
+        resolvedAt: null,
+        updatedAt: new Date(),
+        aiRunId: input.aiRunId,
+      })
       .where(eq(agentFindings.id, id));
   }
   for (const id of sweeps) {
     await db
       .update(agentFindings)
-      .set({ status: "resolved", resolvedAt: new Date(), updatedAt: new Date() })
+      .set({
+        status: "resolved",
+        resolvedAt: new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(agentFindings.id, id));
   }
 }

@@ -1,4 +1,8 @@
-import { streamModelTextSSE, MODELS, type StreamModelTextSSEResult } from "@lore/ai";
+import {
+  streamModelTextSSE,
+  MODELS,
+  type StreamModelTextSSEResult,
+} from "@lore/ai";
 
 // Payload the web route forwards (via the gateway). orgId/projectId are injected
 // server-side from the session — never trusted from the browser. `brief` is the
@@ -14,7 +18,10 @@ export interface WizardPayload {
 const ENTITY_TARGETS =
   "4-6 characters, 2-3 locations, 0-2 factions, 2-4 scenes, 2-4 timeline_events";
 
-export function buildWizardPrompt(payload: WizardPayload): { system: string; prompt: string } {
+export function buildWizardPrompt(payload: WizardPayload): {
+  system: string;
+  prompt: string;
+} {
   const lang = payload.locale === "ar" ? "Arabic" : "English";
   const brief = (payload.brief ?? "").trim();
 
@@ -50,7 +57,8 @@ export interface WizardStreamResult extends StreamModelTextSSEResult {
 // alongside the stream so the caller can log the ai_runs row without re-deriving.
 export function runWizardStream(payload: WizardPayload): WizardStreamResult {
   const { system, prompt } = buildWizardPrompt(payload);
-  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model =
+    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   const { stream, done } = streamModelTextSSE({
     model,
     system,

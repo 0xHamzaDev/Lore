@@ -67,11 +67,17 @@ describe("buildAgentContext", () => {
       [{ id: "t1", title: "Founding", description: null }],
     ];
     let call = 0;
-    (db.select as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
-      from: () => ({ where: () => Promise.resolve(rows[call++]) }),
-    }));
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      () => ({
+        from: () => ({ where: () => Promise.resolve(rows[call++]) }),
+      }),
+    );
 
-    const ctx = await buildAgentContext({ orgId: "o1", projectId: "p1", branchId: "b1" });
+    const ctx = await buildAgentContext({
+      orgId: "o1",
+      projectId: "p1",
+      branchId: "b1",
+    });
 
     expect(ctx.orgId).toBe("o1");
     expect(ctx.projectId).toBe("p1");
@@ -84,23 +90,40 @@ describe("buildAgentContext", () => {
       "scene",
       "timeline_event",
     ]);
-    expect(ctx.entities[0]).toMatchObject({ id: "c1", type: "character", name: "Ahmad" });
-    expect(ctx.entities[3]).toMatchObject({ id: "s1", type: "scene", name: "Opening" });
-    expect(ctx.entities[4]).toMatchObject({ id: "t1", type: "timeline_event", name: "Founding" });
+    expect(ctx.entities[0]).toMatchObject({
+      id: "c1",
+      type: "character",
+      name: "Ahmad",
+    });
+    expect(ctx.entities[3]).toMatchObject({
+      id: "s1",
+      type: "scene",
+      name: "Opening",
+    });
+    expect(ctx.entities[4]).toMatchObject({
+      id: "t1",
+      type: "timeline_event",
+      name: "Founding",
+    });
   });
 
   it("calls db.select with an explicit column projection per table", async () => {
     const { db } = await import("@lore/db");
-    (db.select as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
-      from: () => ({ where: () => Promise.resolve([]) }),
-    }));
+    (db.select as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      () => ({
+        from: () => ({ where: () => Promise.resolve([]) }),
+      }),
+    );
 
     await buildAgentContext({ orgId: "o1", projectId: "p1", branchId: "b1" });
 
-    expect(db.select as unknown as ReturnType<typeof vi.fn>).toHaveBeenCalledTimes(5);
+    expect(
+      db.select as unknown as ReturnType<typeof vi.fn>,
+    ).toHaveBeenCalledTimes(5);
     // Every call's first arg should be a non-undefined column projection
     // object — guards against regressing to `db.select()` (full rows).
-    for (const call of (db.select as unknown as ReturnType<typeof vi.fn>).mock.calls) {
+    for (const call of (db.select as unknown as ReturnType<typeof vi.fn>).mock
+      .calls) {
       expect(call[0]).toBeDefined();
       expect(typeof call[0]).toBe("object");
     }

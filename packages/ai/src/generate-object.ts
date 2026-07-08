@@ -79,7 +79,9 @@ export async function generateModelObject<T>(
   if (opts.prompt !== undefined) params.prompt = opts.prompt;
   if (opts.schemaName !== undefined) params.schemaName = opts.schemaName;
 
-  const result = await generateObject(params as Parameters<typeof generateObject>[0]);
+  const result = await generateObject(
+    params as Parameters<typeof generateObject>[0],
+  );
 
   return {
     object: result.object as T,

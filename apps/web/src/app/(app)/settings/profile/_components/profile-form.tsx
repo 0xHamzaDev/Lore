@@ -37,6 +37,7 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const t = useTranslations("Settings.profile");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
 
   const form = useForm<FormValues>({
@@ -51,7 +52,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
       form.reset({ name: result.data.name });
       router.refresh();
     } else {
-      toast.error(result.error);
+      toast.error(tCommon("error"));
     }
   }
 
@@ -66,15 +67,22 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-6"
+      >
         <div className="flex items-center gap-4">
           <Avatar className="h-14 w-14">
             <AvatarImage src={user.image ?? undefined} />
             <AvatarFallback className="text-sm">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-primary">{t("avatar")}</span>
-            <span className="text-xs text-body-muted">{t("avatarComingSoon")}</span>
+            <span className="text-sm font-medium text-primary">
+              {t("avatar")}
+            </span>
+            <span className="text-xs text-body-muted">
+              {t("avatarComingSoon")}
+            </span>
           </div>
         </div>
 
@@ -101,7 +109,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
         </FormItem>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || !form.formState.isDirty}
+          >
             {form.formState.isSubmitting ? t("saving") : t("save")}
           </Button>
         </div>

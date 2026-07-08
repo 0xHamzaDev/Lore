@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@lore/ui";
 import { requireAuth } from "@lore/auth/guard";
-import { ensurePersonalOrg } from "@lore/auth/org";
+import { resolveActiveOrgId } from "@lore/auth/active-org";
 import { requireSubscription } from "@lore/auth/subscription";
 import { ProjectGrid } from "./_components/project-grid";
 import { NewProjectButton } from "./_components/new-project-button";
@@ -12,13 +12,13 @@ export default async function DashboardPage() {
   const session = await requireAuth();
   const t = await getTranslations("Dashboard");
 
-  // A signed-in user must never be redirected to /sign-in — the middleware
-  // bounces authenticated users off auth routes straight back to /dashboard,
-  // so redirecting here would create an infinite loop. Instead self-heal:
-  // resolve (or create) the user's personal org. Sessions created after the
-  // session.create.before hook already carry activeOrganizationId; this covers
-  // stale sessions that predate it.
-  const orgId = session.session.activeOrganizationId ?? (await ensurePersonalOrg(session.user.id));
+  // Never redirect an authenticated user to /sign-in on a missing org — the
+  // middleware bounces session-cookie holders off /sign-in back to /dashboard,
+  // an infinite loop. resolveActiveOrgId self-heals an org-less account instead.
+  const orgId = await resolveActiveOrgId(
+    session.user,
+    session.session.activeOrganizationId,
+  );
 
   const subscription = await requireSubscription(orgId);
   const isPro = subscription.allowed;

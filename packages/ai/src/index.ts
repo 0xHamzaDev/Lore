@@ -10,4 +10,7 @@ export type {
 export { createNdjsonParser } from "./ndjson";
 export type { NdjsonParser } from "./ndjson";
 export { generateModelObject } from "./generate-object";
-export type { GenerateModelObjectOptions, GenerateModelObjectResult } from "./generate-object";
+export type {
+  GenerateModelObjectOptions,
+  GenerateModelObjectResult,
+} from "./generate-object";

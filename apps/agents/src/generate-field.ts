@@ -1,4 +1,8 @@
-import { streamModelTextSSE, MODELS, type StreamModelTextSSEResult } from "@lore/ai";
+import {
+  streamModelTextSSE,
+  MODELS,
+  type StreamModelTextSSEResult,
+} from "@lore/ai";
 
 // Payload the web route forwards (via the gateway) for an on-demand field
 // generation. orgId is injected server-side from the session — never trusted
@@ -32,7 +36,8 @@ const FIELD_GUIDANCE: Record<string, string> = {
   voiceSample:
     "Write a short sample of dialogue (1-3 lines) that captures how this character speaks.",
   description: "Write a vivid, concrete description (2-4 sentences).",
-  history: "Write a brief history (one short paragraph) of notable past events.",
+  history:
+    "Write a brief history (one short paragraph) of notable past events.",
   goals: "Describe the primary goals and motivations (2-4 sentences).",
   summary: "Write a concise summary (2-4 sentences) of what happens.",
 };
@@ -45,7 +50,8 @@ export function buildFieldPrompt(payload: GenerateFieldPayload): {
   const noun = ENTITY_NOUN[payload.entityType ?? ""] ?? "story entity";
   const fieldLabel = payload.fieldLabel || payload.fieldKey || "field";
   const guidance =
-    FIELD_GUIDANCE[payload.fieldKey ?? ""] ?? `Write appropriate content for the "${fieldLabel}".`;
+    FIELD_GUIDANCE[payload.fieldKey ?? ""] ??
+    `Write appropriate content for the "${fieldLabel}".`;
 
   const system = [
     "You are a worldbuilding assistant for Lore, a collaborative story-writing canvas.",
@@ -65,7 +71,9 @@ export function buildFieldPrompt(payload: GenerateFieldPayload): {
     }
   }
   const contextBlock =
-    lines.length > 0 ? `\n\nKnown details about this ${noun}:\n${lines.join("\n")}` : "";
+    lines.length > 0
+      ? `\n\nKnown details about this ${noun}:\n${lines.join("\n")}`
+      : "";
 
   const prompt = `Generate the "${fieldLabel}" field for a ${noun}. ${guidance}${contextBlock}`;
 
@@ -79,9 +87,12 @@ export interface FieldStreamResult extends StreamModelTextSSEResult {
 // Builds the prompt and kicks off the streaming model call. The model id is
 // returned alongside the stream so the caller can log the ai_runs row without
 // re-deriving it.
-export function runGenerateFieldStream(payload: GenerateFieldPayload): FieldStreamResult {
+export function runGenerateFieldStream(
+  payload: GenerateFieldPayload,
+): FieldStreamResult {
   const { system, prompt } = buildFieldPrompt(payload);
-  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model =
+    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   const { stream, done } = streamModelTextSSE({
     model,
     system,

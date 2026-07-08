@@ -7,7 +7,10 @@ interface LocaleSwitcherProps {
   variant?: "default" | "footer";
 }
 
-export function LocaleSwitcher({ className, variant = "default" }: LocaleSwitcherProps) {
+export function LocaleSwitcher({
+  className,
+  variant = "default",
+}: LocaleSwitcherProps) {
   const locale = useLocale();
 
   function toggle() {

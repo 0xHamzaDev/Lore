@@ -12,7 +12,12 @@ interface WizardOverlayProps {
   onDismiss: () => void;
 }
 
-export function WizardOverlay({ status, count, onRetry, onDismiss }: WizardOverlayProps) {
+export function WizardOverlay({
+  status,
+  count,
+  onRetry,
+  onDismiss,
+}: WizardOverlayProps) {
   const t = useTranslations("Wizard");
 
   if (status === "idle" || status === "done") return null;
@@ -28,15 +33,21 @@ export function WizardOverlay({ status, count, onRetry, onDismiss }: WizardOverl
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#003c33]/10">
               <Sparkles className="h-6 w-6 animate-pulse text-[#003c33]" />
             </div>
-            <h2 className="text-base font-semibold text-[#17171c]">{t("generatingTitle")}</h2>
-            <p className="mt-1 text-sm text-[#6b7280]">{t("generatingCount", { count })}</p>
+            <h2 className="text-base font-semibold text-[#17171c]">
+              {t("generatingTitle")}
+            </h2>
+            <p className="mt-1 text-sm text-[#6b7280]">
+              {t("generatingCount", { count })}
+            </p>
           </>
         ) : (
           <>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
               <AlertTriangle className="h-6 w-6 text-red-500" />
             </div>
-            <h2 className="text-base font-semibold text-[#17171c]">{t("errorTitle")}</h2>
+            <h2 className="text-base font-semibold text-[#17171c]">
+              {t("errorTitle")}
+            </h2>
             <p className="mt-1 text-sm text-[#6b7280]">
               {count > 0 ? t("errorPartial", { count }) : t("errorEmpty")}
             </p>

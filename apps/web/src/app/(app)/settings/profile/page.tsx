@@ -10,7 +10,11 @@ export default async function ProfileSettingsPage() {
 
   return (
     <>
-      <Section title={t("account")} description={t("accountDescription")} bordered>
+      <Section
+        title={t("account")}
+        description={t("accountDescription")}
+        bordered
+      >
         <ProfileForm
           user={{
             name: session.user.name ?? "",
@@ -20,7 +24,11 @@ export default async function ProfileSettingsPage() {
         />
       </Section>
 
-      <Section title={t("preferences")} description={t("preferencesDescription")} bordered>
+      <Section
+        title={t("preferences")}
+        description={t("preferencesDescription")}
+        bordered
+      >
         <LanguageForm />
       </Section>
     </>

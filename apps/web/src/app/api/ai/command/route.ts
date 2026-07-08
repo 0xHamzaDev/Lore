@@ -3,7 +3,11 @@ import { z } from "zod";
 import { signGatewayToken } from "@lore/utils";
 import { auth } from "@lore/auth";
 import { requireSubscription } from "@lore/auth/subscription";
-import { commandIntentSchema, type CommandIntent, type CompactEntity } from "@lore/validators";
+import {
+  commandIntentSchema,
+  type CommandIntent,
+  type CompactEntity,
+} from "@lore/validators";
 import {
   db,
   characters,
@@ -73,7 +77,13 @@ export async function POST(req: Request): Promise<Response> {
 
   // 5) Sign gateway token, forward to Hono buffered route.
   const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
-  const payload = { instruction, entities: compact, locale: locale ?? "en", orgId, projectId };
+  const payload = {
+    instruction,
+    entities: compact,
+    locale: locale ?? "en",
+    orgId,
+    projectId,
+  };
 
   let upstream: Response;
   try {
@@ -103,7 +113,10 @@ export async function POST(req: Request): Promise<Response> {
   const candidate = (raw as { data?: unknown })?.data ?? raw;
   const validated = commandIntentSchema.safeParse(candidate);
   if (!validated.success) {
-    return Response.json({ intent: "unknown", message: "I'm not sure how to help with that." });
+    return Response.json({
+      intent: "unknown",
+      message: "I'm not sure how to help with that.",
+    });
   }
 
   // 6) Drop edit operations whose entityId isn't in the loaded entity list.
@@ -128,7 +141,10 @@ export async function POST(req: Request): Promise<Response> {
   return Response.json(cleaned);
 }
 
-async function loadCompactEntities(orgId: string, branchId: string): Promise<CompactEntity[]> {
+async function loadCompactEntities(
+  orgId: string,
+  branchId: string,
+): Promise<CompactEntity[]> {
   const [chars, locs, facs, scns, tls] = await Promise.all([
     db
       .select({ id: characters.id, name: characters.name, bio: characters.bio })
@@ -141,7 +157,11 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
         ),
       ),
     db
-      .select({ id: locations.id, name: locations.name, description: locations.description })
+      .select({
+        id: locations.id,
+        name: locations.name,
+        description: locations.description,
+      })
       .from(locations)
       .where(
         and(
@@ -151,15 +171,29 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
         ),
       ),
     db
-      .select({ id: factions.id, name: factions.name, description: factions.description })
+      .select({
+        id: factions.id,
+        name: factions.name,
+        description: factions.description,
+      })
       .from(factions)
       .where(
-        and(eq(factions.orgId, orgId), eq(factions.branchId, branchId), isNull(factions.deletedAt)),
+        and(
+          eq(factions.orgId, orgId),
+          eq(factions.branchId, branchId),
+          isNull(factions.deletedAt),
+        ),
       ),
     db
       .select({ id: scenes.id, title: scenes.title, summary: scenes.summary })
       .from(scenes)
-      .where(and(eq(scenes.orgId, orgId), eq(scenes.branchId, branchId), isNull(scenes.deletedAt))),
+      .where(
+        and(
+          eq(scenes.orgId, orgId),
+          eq(scenes.branchId, branchId),
+          isNull(scenes.deletedAt),
+        ),
+      ),
     db
       .select({
         id: timelineEvents.id,
@@ -181,16 +215,36 @@ async function loadCompactEntities(orgId: string, branchId: string): Promise<Com
     out.push({ id: r.id, type: "character", name: r.name, ...withHint(r.bio) });
   }
   for (const r of locs) {
-    out.push({ id: r.id, type: "location", name: r.name, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "location",
+      name: r.name,
+      ...withHint(r.description),
+    });
   }
   for (const r of facs) {
-    out.push({ id: r.id, type: "faction", name: r.name, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "faction",
+      name: r.name,
+      ...withHint(r.description),
+    });
   }
   for (const r of scns) {
-    out.push({ id: r.id, type: "scene", name: r.title, ...withHint(r.summary) });
+    out.push({
+      id: r.id,
+      type: "scene",
+      name: r.title,
+      ...withHint(r.summary),
+    });
   }
   for (const r of tls) {
-    out.push({ id: r.id, type: "timeline_event", name: r.title, ...withHint(r.description) });
+    out.push({
+      id: r.id,
+      type: "timeline_event",
+      name: r.title,
+      ...withHint(r.description),
+    });
   }
   return out;
 }

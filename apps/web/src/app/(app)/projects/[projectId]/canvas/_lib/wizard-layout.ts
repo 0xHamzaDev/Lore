@@ -18,7 +18,10 @@ const COL_WIDTH = 240;
 const ROW_HEIGHT = 220;
 const COLS_PER_ROW = 6;
 
-export function wizardSlot(entityType: EntityType, index: number): { x: number; y: number } {
+export function wizardSlot(
+  entityType: EntityType,
+  index: number,
+): { x: number; y: number } {
   const band = WIZARD_ROW_ORDER.indexOf(entityType);
   const safeBand = band < 0 ? 0 : band;
   const col = index % COLS_PER_ROW;

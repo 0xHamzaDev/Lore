@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   projectId: z.string().min(1),
-  entityType: z.enum(["character", "location", "faction", "scene", "timeline_event"]),
+  entityType: z.enum([
+    "character",
+    "location",
+    "faction",
+    "scene",
+    "timeline_event",
+  ]),
   fieldKey: z.string().min(1).max(64),
   fieldLabel: z.string().max(120).optional(),
   // Sibling-field values used to ground the generation. Bounded so a tampered
@@ -54,7 +60,10 @@ export async function POST(req: Request): Promise<Response> {
     const frame = `event: error\ndata: ${JSON.stringify({ message: `gateway unreachable: ${message}` })}\n\n`;
     return new Response(frame, {
       status: 200,
-      headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+      headers: {
+        "content-type": "text/event-stream",
+        "cache-control": "no-cache, no-transform",
+      },
     });
   }
 
@@ -63,12 +72,18 @@ export async function POST(req: Request): Promise<Response> {
     const frame = `event: error\ndata: ${JSON.stringify({ message: text || `upstream ${upstream.status}` })}\n\n`;
     return new Response(frame, {
       status: 200,
-      headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+      headers: {
+        "content-type": "text/event-stream",
+        "cache-control": "no-cache, no-transform",
+      },
     });
   }
 
   return new Response(upstream.body, {
     status: 200,
-    headers: { "content-type": "text/event-stream", "cache-control": "no-cache, no-transform" },
+    headers: {
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+    },
   });
 }

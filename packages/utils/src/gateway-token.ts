@@ -23,7 +23,10 @@ function utf8(value: string): Uint8Array<ArrayBuffer> {
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
@@ -40,13 +43,19 @@ function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
 // with the DOM-only `CryptoKey` name — consumers typecheck this source under
 // their own lib (Node / Workers), where that global name may not be in scope.
 function importKey(secret: string) {
-  return crypto.subtle.importKey("raw", utf8(secret), { name: "HMAC", hash: "SHA-256" }, false, [
-    "sign",
-    "verify",
-  ]);
+  return crypto.subtle.importKey(
+    "raw",
+    utf8(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
 }
 
-export async function signGatewayToken(secret: string, ttlSeconds = 60): Promise<string> {
+export async function signGatewayToken(
+  secret: string,
+  ttlSeconds = 60,
+): Promise<string> {
   const payload: GatewayTokenPayload = {
     exp: Math.floor(Date.now() / 1000) + ttlSeconds,
   };
@@ -56,7 +65,10 @@ export async function signGatewayToken(secret: string, ttlSeconds = 60): Promise
   return `${payloadPart}.${bytesToBase64Url(new Uint8Array(signature))}`;
 }
 
-export async function verifyGatewayToken(token: string, secret: string): Promise<boolean> {
+export async function verifyGatewayToken(
+  token: string,
+  secret: string,
+): Promise<boolean> {
   const parts = token.split(".");
   if (parts.length !== 2) return false;
   const [payloadPart, signaturePart] = parts;
@@ -76,7 +88,10 @@ export async function verifyGatewayToken(token: string, secret: string): Promise
     const payload = JSON.parse(
       decoder.decode(base64UrlToBytes(payloadPart)),
     ) as GatewayTokenPayload;
-    return typeof payload.exp === "number" && payload.exp > Math.floor(Date.now() / 1000);
+    return (
+      typeof payload.exp === "number" &&
+      payload.exp > Math.floor(Date.now() / 1000)
+    );
   } catch {
     return false;
   }

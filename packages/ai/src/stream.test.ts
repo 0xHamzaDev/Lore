@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@ai-sdk/anthropic", () => ({
-  anthropic: (model: string) => ({ provider: "anthropic-mock", modelId: model }),
+  anthropic: (model: string) => ({
+    provider: "anthropic-mock",
+    modelId: model,
+  }),
 }));
 
 const mockStreamText = vi.fn();

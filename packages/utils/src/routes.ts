@@ -2,6 +2,11 @@ export const ROUTES = {
   home: "/",
   signIn: "/sign-in",
   signUp: "/sign-up",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
+  privacy: "/privacy",
+  terms: "/terms",
+  acceptInvitation: (id: string) => `/accept-invitation/${id}`,
   dashboard: "/dashboard",
   settings: {
     org: "/settings/org",

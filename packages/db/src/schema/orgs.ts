@@ -32,7 +32,9 @@ export const invitations = pgTable("invitation", {
     .references(() => organizations.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: text("role", { enum: ["owner", "editor", "viewer"] }),
-  status: text("status", { enum: ["pending", "accepted", "rejected", "cancelled"] })
+  status: text("status", {
+    enum: ["pending", "accepted", "rejected", "cancelled"],
+  })
     .notNull()
     .default("pending"),
   expiresAt: timestamp("expires_at").notNull(),

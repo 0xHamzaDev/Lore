@@ -93,7 +93,8 @@ export async function cancelSubscriptionAction(
       .where(eq(subscriptions.orgId, data.orgId))
       .limit(1);
 
-    if (!row) return { success: false, error: "No active subscription to cancel." };
+    if (!row)
+      return { success: false, error: "No active subscription to cancel." };
     if (row.status === "cancelled") {
       return { success: true, data: { cancelledUntil: row.currentPeriodEnd } };
     }
@@ -104,10 +105,14 @@ export async function cancelSubscriptionAction(
       .where(eq(subscriptions.orgId, data.orgId))
       .returning();
 
-    if (!updated) return { success: false, error: "Failed to cancel subscription." };
+    if (!updated)
+      return { success: false, error: "Failed to cancel subscription." };
 
     revalidatePath(ROUTES.settings.billing);
-    return { success: true, data: { cancelledUntil: updated.currentPeriodEnd } };
+    return {
+      success: true,
+      data: { cancelledUntil: updated.currentPeriodEnd },
+    };
   } catch (err) {
     console.error("[cancelSubscriptionAction]", err);
     return { success: false, error: "Failed to cancel subscription." };

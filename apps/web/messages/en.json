@@ -1,4 +1,11 @@
 {
+  "Validation": {
+    "nameRequired": "Name is required",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMin": "Password must be at least 8 characters",
+    "briefMax": "Description is too long (2000 characters max)"
+  },
   "Auth": {
     "signIn": "Sign in",
     "signUp": "Create account",
@@ -18,11 +25,29 @@
     "signInTitle": "Welcome back",
     "signInSubtitle": "Sign in to your worlds.",
     "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordSubtitle": "Enter your email and we'll send you a reset link.",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending…",
+    "resetLinkSent": "If an account exists for that email, a reset link is on its way. Check your inbox.",
+    "backToSignIn": "Back to sign in",
+    "resetPasswordTitle": "Set a new password",
+    "resetPasswordSubtitle": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "resetPassword": "Reset password",
+    "resetting": "Resetting…",
+    "resetSuccess": "Password updated. You can now sign in.",
+    "resetFailed": "This reset link is invalid or has expired.",
+    "invalidResetLink": "This reset link is invalid or has expired.",
+    "requestNewLink": "Request a new link",
     "acceptTitle": "You've been invited",
     "acceptDescription": "Join {orgName} on Lore.",
     "acceptCta": "Accept invitation",
     "accepting": "Accepting…",
     "acceptSignUpHint": "Create an account with this email to accept.",
+    "acceptSignedInHint": "Accept to join this workspace.",
+    "acceptCreateAccount": "Create an account to accept",
+    "acceptSignInInstead": "Already have an account? Sign in",
     "errors": {
       "invalidCredentials": "Invalid email or password",
       "emailTaken": "This email is already in use",
@@ -113,6 +138,7 @@
   "Common": {
     "loading": "Loading…",
     "error": "Something went wrong",
+    "errorDescription": "An unexpected error occurred. Please try again.",
     "retry": "Try again",
     "cancel": "Cancel",
     "save": "Save",
@@ -134,7 +160,10 @@
       "features": "Features",
       "pricing": "Pricing",
       "signIn": "Sign in",
-      "getStarted": "Get started"
+      "getStarted": "Get started",
+      "account": "Account menu",
+      "dashboard": "Dashboard",
+      "signOut": "Sign out"
     },
     "hero": {
       "eyebrow": "AI-native worldbuilding",
@@ -222,6 +251,32 @@
         "desc": "A chronological record of every moment that matters."
       }
     },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "heading": "Start free. Grow when you're ready.",
+      "sub": "Create your first world free. Upgrade for unlimited worlds and AI-assisted worldbuilding.",
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "period": "forever",
+        "cta": "Start free",
+        "f1": "One world",
+        "f2": "Full infinite canvas",
+        "f3": "Characters, locations, factions, scenes & events",
+        "f4": "Timeline & consistency view"
+      },
+      "pro": {
+        "name": "Pro",
+        "badge": "For serious worldbuilders",
+        "priceNote": "Upgrade anytime from your workspace",
+        "cta": "Create your account",
+        "f1": "Everything in Free",
+        "f2": "Unlimited worlds",
+        "f3": "AI world generation from a one-line brief",
+        "f4": "AI field suggestions on any entity",
+        "f5": "Background continuity & consistency agents"
+      }
+    },
     "ctaSection": {
       "heading": "Your world is waiting.",
       "sub": "Start building for free. No credit card required.",
@@ -255,6 +310,7 @@
   "Projects": {
     "namePlaceholder": "Project name",
     "creating": "Creating…",
+    "deleting": "Deleting…",
     "rename": "Rename",
     "renameTitle": "Rename project",
     "delete": "Delete project",
@@ -297,6 +353,7 @@
       "title": "Plan",
       "description": "Your current subscription and renewal details."
     },
+    "ownerOnly": "Only the workspace owner can manage the plan.",
     "plans": {
       "free": "Free",
       "pro": "Pro"
@@ -363,6 +420,15 @@
     "errorTitle": "The canvas ran into a problem",
     "errorDescription": "Something went wrong while rendering this board. Retrying usually fixes it — your work is saved.",
     "addEntity": "Add entity",
+    "empty": {
+      "title": "Your world is a blank canvas",
+      "description": "Add your first element to start building. Characters, locations, factions, scenes, and events all become living, connected files.",
+      "hint": "Pick a type to begin — or right-click anywhere on the canvas."
+    },
+    "connectionError": {
+      "title": "Couldn't load the canvas",
+      "description": "We couldn't connect to your workspace. Check your connection and try again."
+    },
     "deleteEntity": "Delete entity",
     "deleteConfirm": "Are you sure you want to delete this entity? This cannot be undone.",
     "saving": "Saving…",
@@ -458,5 +524,68 @@
     "agentPacing": "Pacing",
     "agentDialogue": "Dialogue",
     "agentVerification": "Verification"
+  },
+  "Legal": {
+    "lastUpdated": "Last updated: July 2026",
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This policy explains what information Lore collects, how we use it, and the choices you have. We keep it short and plain.",
+      "sections": [
+        {
+          "heading": "Information we collect",
+          "body": "Your account details (name and email), the worlds and content you create, and basic usage data needed to run the product."
+        },
+        {
+          "heading": "How we use it",
+          "body": "To provide and improve the service, keep your account secure, and communicate with you about your account. We do not sell your data."
+        },
+        {
+          "heading": "AI processing",
+          "body": "When you use AI features, the relevant content is sent to our AI provider to generate suggestions. It is used only to fulfil your request, not to train their models."
+        },
+        {
+          "heading": "Service providers",
+          "body": "We rely on trusted processors to operate: Neon (database), Anthropic (AI), Liveblocks (real-time canvas), and Resend (email). They process data only on our behalf."
+        },
+        {
+          "heading": "Data retention and deletion",
+          "body": "You can delete projects and your account at any time. Deleted content is removed from active systems, and you can contact us to request full erasure."
+        },
+        {
+          "heading": "Your rights and contact",
+          "body": "You can access, correct, or delete your data. For any privacy request, email privacy@lore.app."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "These terms govern your use of Lore. By creating an account you agree to them.",
+      "sections": [
+        {
+          "heading": "Your account",
+          "body": "You are responsible for activity under your account and for keeping your credentials secure. Provide accurate information when you sign up."
+        },
+        {
+          "heading": "Your content",
+          "body": "You own the worlds and content you create. You grant Lore the limited license needed to store, display, and process that content so we can run the service for you."
+        },
+        {
+          "heading": "Acceptable use",
+          "body": "Do not use Lore for unlawful, infringing, or abusive content, and do not attempt to disrupt the service or misuse AI features."
+        },
+        {
+          "heading": "Plans and billing",
+          "body": "Lore offers free and paid plans. Paid features are provided through a subscription. During this preview, checkout is a demonstration and no payment is charged."
+        },
+        {
+          "heading": "Suspension and changes",
+          "body": "We may suspend accounts that violate these terms, and we may update the service or these terms; we will note the date of the latest change above."
+        },
+        {
+          "heading": "Disclaimer",
+          "body": "Lore is provided \"as is\" without warranties. To the extent permitted by law, we are not liable for indirect or incidental damages arising from your use of the service."
+        }
+      ]
+    }
   }
 }

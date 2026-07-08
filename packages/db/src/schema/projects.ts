@@ -29,7 +29,9 @@ export const branches = pgTable(
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
     name: text("name").notNull().default("main"),
-    parentBranchId: text("parent_branch_id").references((): AnyPgColumn => branches.id),
+    parentBranchId: text("parent_branch_id").references(
+      (): AnyPgColumn => branches.id,
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

@@ -13,7 +13,9 @@ const InviteMemberSchema = z.object({
   role: z.enum(["editor", "viewer"]),
 });
 
-export async function inviteMemberAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+export async function inviteMemberAction(
+  input: unknown,
+): Promise<ActionResult<{ id: string }>> {
   try {
     const data = InviteMemberSchema.parse(input);
     const perm = await requireOrgRole(data.orgId, "owner");
@@ -43,7 +45,9 @@ const UpdateRoleSchema = z.object({
   role: z.enum(["editor", "viewer"]),
 });
 
-export async function updateMemberRoleAction(input: unknown): Promise<ActionResult<void>> {
+export async function updateMemberRoleAction(
+  input: unknown,
+): Promise<ActionResult<void>> {
   try {
     const data = UpdateRoleSchema.parse(input);
     const perm = await requireOrgRole(data.orgId, "owner");
@@ -72,7 +76,9 @@ const RemoveMemberSchema = z.object({
   memberId: z.string().min(1),
 });
 
-export async function removeMemberAction(input: unknown): Promise<ActionResult<void>> {
+export async function removeMemberAction(
+  input: unknown,
+): Promise<ActionResult<void>> {
   try {
     const data = RemoveMemberSchema.parse(input);
     const perm = await requireOrgRole(data.orgId, "owner");
@@ -100,7 +106,9 @@ const UpdateOrgSchema = z.object({
   name: z.string().trim().min(1).max(80),
 });
 
-export async function updateOrgAction(input: unknown): Promise<ActionResult<{ name: string }>> {
+export async function updateOrgAction(
+  input: unknown,
+): Promise<ActionResult<{ name: string }>> {
   try {
     const data = UpdateOrgSchema.parse(input);
     const perm = await requireOrgRole(data.orgId, "owner");
@@ -128,7 +136,9 @@ const CancelInvitationSchema = z.object({
   invitationId: z.string().min(1),
 });
 
-export async function cancelInvitationAction(input: unknown): Promise<ActionResult<void>> {
+export async function cancelInvitationAction(
+  input: unknown,
+): Promise<ActionResult<void>> {
   try {
     const data = CancelInvitationSchema.parse(input);
     const perm = await requireOrgRole(data.orgId, "owner");

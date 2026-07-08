@@ -5,7 +5,11 @@ import { SettingsTabs } from "./_components/settings-tabs";
 
 export const metadata = { title: "Settings — Lore" };
 
-export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
+export default async function SettingsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   await requireAuth();
   const t = await getTranslations("Settings");
 

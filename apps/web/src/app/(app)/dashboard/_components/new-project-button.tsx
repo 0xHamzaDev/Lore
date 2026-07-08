@@ -29,7 +29,11 @@ export function NewProjectButton({
 
   return (
     <>
-      <Button type="button" variant={variant} onClick={() => setCreateOpen(true)}>
+      <Button
+        type="button"
+        variant={variant}
+        onClick={() => setCreateOpen(true)}
+      >
         <Plus className="h-4 w-4" aria-hidden="true" />
         {label ?? t("newProject")}
       </Button>

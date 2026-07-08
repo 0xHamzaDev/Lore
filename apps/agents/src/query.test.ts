@@ -21,12 +21,20 @@ describe("buildQueryPrompt", () => {
   });
 
   it("instructs the model to answer in Arabic for locale=ar", () => {
-    const { system } = buildQueryPrompt({ question: "q", entities: [], locale: "ar" });
+    const { system } = buildQueryPrompt({
+      question: "q",
+      entities: [],
+      locale: "ar",
+    });
     expect(system).toContain("Arabic");
   });
 
   it("instructs the model to admit when the answer is not in the entities", () => {
-    const { system } = buildQueryPrompt({ question: "q", entities: [], locale: "en" });
+    const { system } = buildQueryPrompt({
+      question: "q",
+      entities: [],
+      locale: "en",
+    });
     expect(system.toLowerCase()).toContain("not in the entities");
   });
 });

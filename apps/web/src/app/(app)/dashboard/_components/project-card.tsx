@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { MoreHorizontal } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ROUTES } from "@lore/utils";
@@ -30,19 +30,24 @@ function formatRelative(date: string | Date, locale: string) {
   if (minutes < 60) return rtf.format(-minutes, "minute");
   if (hours < 24) return rtf.format(-hours, "hour");
   if (days < 30) return rtf.format(-days, "day");
-  return d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
   const t = useTranslations("Projects");
   const tCommon = useTranslations("Common");
   const tDash = useTranslations("Dashboard");
+  const locale = useLocale();
 
   return (
     <article className="group relative flex flex-col gap-4 rounded-sm border border-card-border bg-canvas p-5 transition-colors hover:border-hairline">
       <div className="flex items-start justify-between gap-2">
         <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
-          {tDash("title")} · {formatRelative(project.updatedAt, "en")}
+          {tDash("title")} · {formatRelative(project.updatedAt, locale)}
         </div>
 
         <DropdownMenu>
@@ -57,7 +62,9 @@ export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onRename(project)}>{t("rename")}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onRename(project)}>
+              {t("rename")}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(project)}

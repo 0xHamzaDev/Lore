@@ -1,7 +1,10 @@
 import * as React from "react";
 import { cn } from "./lib/utils";
 
-export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface PageHeaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
@@ -33,7 +36,9 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
           </p>
         ) : null}
       </div>
-      {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
+      {action ? (
+        <div className="flex shrink-0 items-center gap-2">{action}</div>
+      ) : null}
     </div>
   ),
 );

@@ -54,8 +54,11 @@ export async function runAgent(input: AgentRunInput): Promise<unknown> {
   }
 }
 
-async function runPing(payload: NonNullable<AgentRunInput["payload"]>): Promise<unknown> {
-  const model = typeof payload.model === "string" ? payload.model : MODELS.haiku;
+async function runPing(
+  payload: NonNullable<AgentRunInput["payload"]>,
+): Promise<unknown> {
+  const model =
+    typeof payload.model === "string" ? payload.model : MODELS.haiku;
   const orgId = payload.orgId ?? null;
   const projectId = payload.projectId ?? null;
   const start = Date.now();
@@ -77,7 +80,13 @@ async function runPing(payload: NonNullable<AgentRunInput["payload"]>): Promise<
       latencyMs: result.latencyMs,
       status: "success",
     });
-    return { ok: true, text: result.text, usage: result.usage, latencyMs: result.latencyMs, model };
+    return {
+      ok: true,
+      text: result.text,
+      usage: result.usage,
+      latencyMs: result.latencyMs,
+      model,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await logAiRun({

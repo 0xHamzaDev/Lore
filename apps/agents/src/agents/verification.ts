@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { generateModelObject, MODELS } from "@lore/ai";
-import { agentFindingSchema, type AgentFindingOutput, type CompactEntity } from "@lore/validators";
+import {
+  agentFindingSchema,
+  type AgentFindingOutput,
+  type CompactEntity,
+} from "@lore/validators";
 import { webSearch } from "../web-search";
 
 // Verification's intermediate schema: the model emits a {query, finding}
@@ -62,7 +66,9 @@ export function buildVerificationPrompt(input: {
   return { system, prompt };
 }
 
-export async function runVerificationAgent(input: VerificationInput): Promise<VerificationResult> {
+export async function runVerificationAgent(
+  input: VerificationInput,
+): Promise<VerificationResult> {
   const model = input.model ?? MODELS.sonnet;
   const { system, prompt } = buildVerificationPrompt(input);
 
