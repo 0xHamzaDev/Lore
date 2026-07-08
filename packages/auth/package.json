@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./guard": "./src/guard.ts",
+    "./org": "./src/org.ts",
     "./permissions": "./src/permissions.ts",
     "./subscription": "./src/subscription.ts"
   },

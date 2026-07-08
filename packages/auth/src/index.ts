@@ -11,8 +11,7 @@ import {
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
-import { createId } from "@paralleldrive/cuid2";
-import { eq } from "drizzle-orm";
+import { ensurePersonalOrg } from "./org";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -67,42 +66,11 @@ export const auth = betterAuth({
         // freshly signed-up user's first session had no org and no AI access.
         // Runs on sign-up (creates the org) and every sign-in (org exists).
         before: async (session) => {
-          let [membership] = await db
-            .select({ organizationId: members.organizationId })
-            .from(members)
-            .where(eq(members.userId, session.userId))
-            .limit(1);
-
-          if (!membership) {
-            const [user] = await db
-              .select({ name: users.name, email: users.email })
-              .from(users)
-              .where(eq(users.id, session.userId))
-              .limit(1);
-            const orgId = createId();
-            const now = new Date();
-            await db.insert(organizations).values({
-              id: orgId,
-              name: user?.name ?? user?.email?.split("@")[0] ?? "My Organization",
-              slug: `personal-${session.userId}`,
-              createdAt: now,
-              updatedAt: now,
-            });
-            await db.insert(members).values({
-              id: createId(),
-              organizationId: orgId,
-              userId: session.userId,
-              role: "owner",
-              createdAt: now,
-              updatedAt: now,
-            });
-            membership = { organizationId: orgId };
-          }
-
+          const organizationId = await ensurePersonalOrg(session.userId);
           return {
             data: {
               ...session,
-              activeOrganizationId: membership.organizationId,
+              activeOrganizationId: organizationId,
             },
           };
         },
