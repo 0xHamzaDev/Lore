@@ -4,7 +4,6 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
-    ANTHROPIC_API_KEY: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url(),
     RESEND_API_KEY: z.string().min(1),
@@ -18,7 +17,6 @@ export const env = createEnv({
   },
   runtimeEnv: {
     DATABASE_URL: process.env["DATABASE_URL"],
-    ANTHROPIC_API_KEY: process.env["ANTHROPIC_API_KEY"],
     BETTER_AUTH_SECRET: process.env["BETTER_AUTH_SECRET"],
     BETTER_AUTH_URL: process.env["BETTER_AUTH_URL"],
     RESEND_API_KEY: process.env["RESEND_API_KEY"],
