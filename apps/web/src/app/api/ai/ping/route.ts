@@ -1,7 +1,7 @@
 import { signGatewayToken } from "@lore/utils";
 import { env } from "@/env";
 
-// Health check that round-trips Next → Hono gateway → agents server → Anthropic.
+// Health check that round-trips Next → Hono gateway → agents server → Ollama.
 // Open (no user auth) so it can be curled directly; it still mints a signed
 // gateway token because the Hono layer rejects unsigned requests.
 async function handlePing(): Promise<Response> {

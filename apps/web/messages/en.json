@@ -545,7 +545,7 @@
         },
         {
           "heading": "Service providers",
-          "body": "We rely on trusted processors to operate: Neon (database), Anthropic (AI), Liveblocks (real-time canvas), and Resend (email). They process data only on our behalf."
+          "body": "We rely on trusted processors to operate: Neon (database), Ollama (AI), Liveblocks (real-time canvas), and Resend (email). They process data only on our behalf."
         },
         {
           "heading": "Data retention and deletion",
