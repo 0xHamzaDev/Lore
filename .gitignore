@@ -16,3 +16,5 @@ docs/superpowers/
 # Cloudflare Worker local secrets
 .dev.vars
 .gstack/
+.vercel
+.env*
