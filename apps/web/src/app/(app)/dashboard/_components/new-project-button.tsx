@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
 import { Button } from "@lore/ui";
 import { QK } from "@lore/utils";
-import { CreateProjectDialog } from "./create-project-dialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { CreateProjectDialog } from "./create-project-dialog";
 
 interface NewProjectButtonProps {
   orgId: string;
@@ -26,14 +26,11 @@ export function NewProjectButton({
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"project" | "ai">("project");
 
   return (
     <>
-      <Button
-        type="button"
-        variant={variant}
-        onClick={() => setCreateOpen(true)}
-      >
+      <Button type="button" variant={variant} onClick={() => setCreateOpen(true)}>
         <Plus className="h-4 w-4" aria-hidden="true" />
         {label ?? t("newProject")}
       </Button>
@@ -47,10 +44,17 @@ export function NewProjectButton({
           setCreateOpen(false);
           queryClient.invalidateQueries({ queryKey: QK.projects.list(orgId) });
         }}
-        onUpgradeRequired={() => setUpgradeOpen(true)}
+        onUpgradeRequired={(reason) => {
+          setUpgradeReason(reason);
+          setUpgradeOpen(true);
+        }}
       />
 
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <UpgradeModal
+        open={upgradeOpen}
+        reason={upgradeReason}
+        onClose={() => setUpgradeOpen(false)}
+      />
     </>
   );
 }

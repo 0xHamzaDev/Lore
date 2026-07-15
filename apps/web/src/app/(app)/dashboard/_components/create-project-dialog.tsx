@@ -1,12 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useLocale, useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import {
   Button,
   Dialog,
@@ -25,8 +19,14 @@ import {
   Textarea,
 } from "@lore/ui";
 import { ROUTES } from "@lore/utils";
-import { useRouter } from "@/i18n/navigation";
+import { Loader2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 import { stashWizardBrief } from "@/app/(app)/projects/[projectId]/canvas/_lib/wizard-handoff";
+import { useRouter } from "@/i18n/navigation";
 import { createProject } from "../_actions";
 
 type FormValues = {
@@ -40,7 +40,7 @@ interface CreateProjectDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  onUpgradeRequired: () => void;
+  onUpgradeRequired: (reason: "project" | "ai") => void;
 }
 
 export function CreateProjectDialog({
@@ -57,9 +57,7 @@ export function CreateProjectDialog({
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [isCreating, setIsCreating] = useState(false);
-  const [pendingAction, setPendingAction] = useState<
-    "skip" | "generate" | null
-  >(null);
+  const [pendingAction, setPendingAction] = useState<"skip" | "generate" | null>(null);
 
   const schema = useMemo(
     () =>
@@ -103,7 +101,7 @@ export function CreateProjectDialog({
       setPendingAction(null);
       if (result.error === "upgrade_required") {
         resetAndClose();
-        onUpgradeRequired();
+        onUpgradeRequired("project");
         return null;
       }
       toast.error(t("Common.error"));
@@ -127,7 +125,7 @@ export function CreateProjectDialog({
   async function handleGenerate() {
     if (!isPro) {
       resetAndClose();
-      onUpgradeRequired();
+      onUpgradeRequired("ai");
       return;
     }
     const brief = (form.getValues("brief") ?? "").trim();
@@ -151,16 +149,11 @@ export function CreateProjectDialog({
         <DialogHeader>
           <DialogTitle>{t("Projects.createTitle")}</DialogTitle>
           <DialogDescription>
-            {step === 1
-              ? t("Projects.createDescription")
-              : t("Wizard.briefDescription")}
+            {step === 1 ? t("Projects.createDescription") : t("Wizard.briefDescription")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            className="mt-4 flex flex-col gap-4"
-            onSubmit={(e) => e.preventDefault()}
-          >
+          <form className="mt-4 flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
             {step === 1 ? (
               <FormField
                 control={form.control}
@@ -169,11 +162,7 @@ export function CreateProjectDialog({
                   <FormItem>
                     <FormLabel>{t("Projects.namePlaceholder")}</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={t("Projects.namePlaceholder")}
-                        autoFocus
-                        {...field}
-                      />
+                      <Input placeholder={t("Projects.namePlaceholder")} autoFocus {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -203,11 +192,7 @@ export function CreateProjectDialog({
             <DialogFooter>
               {step === 1 ? (
                 <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={resetAndClose}
-                  >
+                  <Button type="button" variant="outline" onClick={resetAndClose}>
                     {t("Common.cancel")}
                   </Button>
                   <Button type="button" onClick={() => void handleNext()}>
@@ -224,27 +209,17 @@ export function CreateProjectDialog({
                   >
                     {pendingAction === "skip" ? (
                       <>
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         {t("Projects.creating")}
                       </>
                     ) : (
                       t("Wizard.skip")
                     )}
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => void handleGenerate()}
-                    disabled={submitting}
-                  >
+                  <Button type="button" onClick={() => void handleGenerate()} disabled={submitting}>
                     {pendingAction === "generate" ? (
                       <>
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         {t("Projects.creating")}
                       </>
                     ) : (
