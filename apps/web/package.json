@@ -14,6 +14,7 @@
     "@liveblocks/client": "^3.19.3",
     "@liveblocks/node": "^3.19.3",
     "@liveblocks/react": "^3.19.3",
+    "@lore/agents": "workspace:*",
     "@lore/ai": "workspace:*",
     "@lore/auth": "workspace:*",
     "@lore/db": "workspace:*",

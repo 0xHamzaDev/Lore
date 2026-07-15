@@ -1,35 +1,19 @@
-import { signGatewayToken } from "@lore/utils";
-import { env } from "@/env";
+import { runAgent } from "@lore/agents";
 
-// Health check that round-trips Next → Hono gateway → agents server → Ollama.
-// Open (no user auth) so it can be curled directly; it still mints a signed
-// gateway token because the Hono layer rejects unsigned requests.
+export const runtime = "nodejs";
+
+// Health check that exercises the full AI path in-process (Next → Ollama),
+// via the same ping agent the gateway used to forward to. Open (no user auth)
+// so it can be curled directly. Response shape matches the old gateway
+// passthrough: { success: true, data } or { success: false, error }.
 async function handlePing(): Promise<Response> {
-  const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
-
-  let upstream: Response;
   try {
-    upstream = await fetch(`${env.API_GATEWAY_URL}/agent/ping`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
-    });
+    const data = await runAgent({ type: "ping" });
+    return Response.json({ success: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return Response.json(
-      { success: false, error: `gateway unreachable: ${message}` },
-      { status: 502 },
-    );
+    return Response.json({ success: false, error: message }, { status: 500 });
   }
-
-  const text = await upstream.text();
-  return new Response(text, {
-    status: upstream.status,
-    headers: { "content-type": "application/json" },
-  });
 }
 
 export async function GET(): Promise<Response> {

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@lore/ui",
     "@lore/ai",
+    "@lore/agents",
     "@lore/validators",
     "@lore/auth",
     "@lore/utils",

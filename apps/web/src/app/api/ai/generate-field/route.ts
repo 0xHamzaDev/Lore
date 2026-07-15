@@ -1,19 +1,14 @@
+import { runGenerateFieldStream } from "@lore/agents";
 import { z } from "zod";
-import { signGatewayToken } from "@lore/utils";
+import { createDeltaSseResponse, sseErrorResponse } from "@/lib/agent-sse";
 import { requirePro } from "@/lib/require-pro-route";
-import { env } from "@/env";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const bodySchema = z.object({
   projectId: z.string().min(1),
-  entityType: z.enum([
-    "character",
-    "location",
-    "faction",
-    "scene",
-    "timeline_event",
-  ]),
+  entityType: z.enum(["character", "location", "faction", "scene", "timeline_event"]),
   fieldKey: z.string().min(1).max(64),
   fieldLabel: z.string().max(120).optional(),
   // Sibling-field values used to ground the generation. Bounded so a tampered
@@ -24,7 +19,7 @@ const bodySchema = z.object({
 
 // SSE-streamed on-demand field generation. Gates on an active Pro subscription
 // (free users are short-circuited client-side, so a 402 here is defense in
-// depth), then proxies to the Hono gateway, injecting the org id from the
+// depth), then runs the model in-process, injecting the org id from the
 // session — never trusting an org id from the browser.
 export async function POST(req: Request): Promise<Response> {
   const gate = await requirePro();
@@ -36,54 +31,23 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
   const payload = {
     ...parsed.data,
     orgId: gate.context.orgId,
   };
 
-  let upstream: Response;
+  let result: ReturnType<typeof runGenerateFieldStream>;
   try {
-    upstream = await fetch(`${env.API_GATEWAY_URL}/agent/generate-field`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    result = runGenerateFieldStream(payload);
   } catch (err) {
-    // Gateway or agents server unreachable — surface as a single SSE error
-    // event so the client's stream parser shows the inline "Try again" state
-    // instead of hanging.
     const message = err instanceof Error ? err.message : String(err);
-    const frame = `event: error\ndata: ${JSON.stringify({ message: `gateway unreachable: ${message}` })}\n\n`;
-    return new Response(frame, {
-      status: 200,
-      headers: {
-        "content-type": "text/event-stream",
-        "cache-control": "no-cache, no-transform",
-      },
-    });
+    return sseErrorResponse(message);
   }
 
-  if (!upstream.ok || !upstream.body) {
-    const text = await upstream.text().catch(() => "");
-    const frame = `event: error\ndata: ${JSON.stringify({ message: text || `upstream ${upstream.status}` })}\n\n`;
-    return new Response(frame, {
-      status: 200,
-      headers: {
-        "content-type": "text/event-stream",
-        "cache-control": "no-cache, no-transform",
-      },
-    });
-  }
-
-  return new Response(upstream.body, {
-    status: 200,
-    headers: {
-      "content-type": "text/event-stream",
-      "cache-control": "no-cache, no-transform",
-    },
+  return createDeltaSseResponse(result, {
+    orgId: gate.context.orgId,
+    projectId: parsed.data.projectId,
+    runType: "on_demand",
+    includeAiRunId: true,
   });
 }

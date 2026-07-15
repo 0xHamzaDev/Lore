@@ -1,18 +1,21 @@
-import { streamModelTextSSE, MODELS, type StreamModelTextSSEResult } from "@lore/ai";
+import { MODELS, type StreamModelTextSSEResult, streamModelTextSSE } from "@lore/ai";
 
-// Payload the web route forwards (via the gateway) for an on-demand field
-// generation. orgId is injected server-side from the session — never trusted
-// from the browser. `context` is the entity's current sibling-field values so
-// the model can stay consistent (e.g. a backstory that matches the bio).
+// Payload the web route forwards for an on-demand field generation. orgId is
+// injected server-side from the session — never trusted from the browser.
+// `context` is the entity's current sibling-field values so the model can
+// stay consistent (e.g. a backstory that matches the bio). Optional fields
+// are typed `| undefined` (not just `?:`) so a zod-parsed request body — whose
+// `.optional()` fields are themselves typed `T | undefined` — can be spread
+// straight into this shape under `exactOptionalPropertyTypes`.
 export interface GenerateFieldPayload {
-  orgId?: string | null;
-  projectId?: string | null;
-  entityType?: string;
-  fieldKey?: string;
-  fieldLabel?: string;
-  context?: Record<string, string>;
-  locale?: string;
-  model?: string;
+  orgId?: string | null | undefined;
+  projectId?: string | null | undefined;
+  entityType?: string | undefined;
+  fieldKey?: string | undefined;
+  fieldLabel?: string | undefined;
+  context?: Record<string, string> | undefined;
+  locale?: string | undefined;
+  model?: string | undefined;
 }
 
 const ENTITY_NOUN: Record<string, string> = {

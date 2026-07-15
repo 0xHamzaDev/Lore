@@ -1,18 +1,16 @@
-import {
-  streamModelTextSSE,
-  MODELS,
-  type StreamModelTextSSEResult,
-} from "@lore/ai";
+import { MODELS, type StreamModelTextSSEResult, streamModelTextSSE } from "@lore/ai";
 
-// Payload the web route forwards (via the gateway). orgId/projectId are injected
-// server-side from the session — never trusted from the browser. `brief` is the
-// user's one-line story prompt; `locale` selects the content language.
+// Payload the web route forwards. orgId/projectId are injected server-side
+// from the session — never trusted from the browser. `brief` is the user's
+// one-line story prompt; `locale` selects the content language. Optional
+// fields are typed `| undefined` (not just `?:`) so a zod-parsed request body
+// can be spread straight into this shape under `exactOptionalPropertyTypes`.
 export interface WizardPayload {
-  orgId?: string | null;
-  projectId?: string | null;
-  brief?: string;
-  locale?: string;
-  model?: string;
+  orgId?: string | null | undefined;
+  projectId?: string | null | undefined;
+  brief?: string | undefined;
+  locale?: string | undefined;
+  model?: string | undefined;
 }
 
 const ENTITY_TARGETS =
@@ -57,8 +55,7 @@ export interface WizardStreamResult extends StreamModelTextSSEResult {
 // alongside the stream so the caller can log the ai_runs row without re-deriving.
 export function runWizardStream(payload: WizardPayload): WizardStreamResult {
   const { system, prompt } = buildWizardPrompt(payload);
-  const model =
-    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   const { stream, done } = streamModelTextSSE({
     model,
     system,

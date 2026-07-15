@@ -100,6 +100,9 @@ importers:
       '@liveblocks/react':
         specifier: ^3.19.3
         version: 3.19.3(@types/json-schema@7.0.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react@19.2.6)
+      '@lore/agents':
+        specifier: workspace:*
+        version: link:../agents
       '@lore/ai':
         specifier: workspace:*
         version: link:../../packages/ai

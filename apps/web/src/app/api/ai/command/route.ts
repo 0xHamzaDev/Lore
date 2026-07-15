@@ -1,29 +1,25 @@
-import { headers } from "next/headers";
-import { z } from "zod";
-import { signGatewayToken } from "@lore/utils";
+import { runAgent } from "@lore/agents";
 import { auth } from "@lore/auth";
 import { requireSubscription } from "@lore/auth/subscription";
 import {
-  commandIntentSchema,
-  type CommandIntent,
-  type CompactEntity,
-} from "@lore/validators";
-import {
-  db,
+  and,
   characters,
-  locations,
+  db,
+  eq,
   factions,
+  isNull,
+  locations,
+  members,
+  projects,
   scenes,
   timelineEvents,
-  projects,
-  members,
-  and,
-  eq,
-  isNull,
 } from "@lore/db";
-import { env } from "@/env";
+import { type CommandIntent, type CompactEntity, commandIntentSchema } from "@lore/validators";
+import { headers } from "next/headers";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const bodySchema = z.object({
   projectId: z.string().min(1),
@@ -75,8 +71,7 @@ export async function POST(req: Request): Promise<Response> {
   //    branches still fit in one prompt.
   const compact = await loadCompactEntities(orgId, branchId);
 
-  // 5) Sign gateway token, forward to Hono buffered route.
-  const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
+  // 5) Run the command router agent in-process.
   const payload = {
     instruction,
     entities: compact,
@@ -85,32 +80,14 @@ export async function POST(req: Request): Promise<Response> {
     projectId,
   };
 
-  let upstream: Response;
+  let candidate: unknown;
   try {
-    upstream = await fetch(`${env.API_GATEWAY_URL}/agent/command`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    candidate = await runAgent({ type: "command", payload });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: "unreachable", message }, { status: 502 });
+    return Response.json({ error: "agent_run_failed", message }, { status: 502 });
   }
 
-  if (!upstream.ok) {
-    const text = await upstream.text().catch(() => "");
-    return Response.json(
-      { error: "upstream_error", status: upstream.status, body: text },
-      { status: 502 },
-    );
-  }
-
-  const raw = await upstream.json().catch(() => null);
-  // The gateway returns { success, data } from runAgent's wrapper.
-  const candidate = (raw as { data?: unknown })?.data ?? raw;
   const validated = commandIntentSchema.safeParse(candidate);
   if (!validated.success) {
     return Response.json({
@@ -141,10 +118,7 @@ export async function POST(req: Request): Promise<Response> {
   return Response.json(cleaned);
 }
 
-async function loadCompactEntities(
-  orgId: string,
-  branchId: string,
-): Promise<CompactEntity[]> {
+async function loadCompactEntities(orgId: string, branchId: string): Promise<CompactEntity[]> {
   const [chars, locs, facs, scns, tls] = await Promise.all([
     db
       .select({ id: characters.id, name: characters.name, bio: characters.bio })
@@ -178,22 +152,12 @@ async function loadCompactEntities(
       })
       .from(factions)
       .where(
-        and(
-          eq(factions.orgId, orgId),
-          eq(factions.branchId, branchId),
-          isNull(factions.deletedAt),
-        ),
+        and(eq(factions.orgId, orgId), eq(factions.branchId, branchId), isNull(factions.deletedAt)),
       ),
     db
       .select({ id: scenes.id, title: scenes.title, summary: scenes.summary })
       .from(scenes)
-      .where(
-        and(
-          eq(scenes.orgId, orgId),
-          eq(scenes.branchId, branchId),
-          isNull(scenes.deletedAt),
-        ),
-      ),
+      .where(and(eq(scenes.orgId, orgId), eq(scenes.branchId, branchId), isNull(scenes.deletedAt))),
     db
       .select({
         id: timelineEvents.id,

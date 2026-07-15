@@ -1,21 +1,16 @@
-import {
-  generateModelObject,
-  MODELS,
-  type GenerateModelObjectResult,
-} from "@lore/ai";
-import {
-  commandIntentSchema,
-  type CommandIntent,
-  type CompactEntity,
-} from "@lore/validators";
+import { type GenerateModelObjectResult, generateModelObject, MODELS } from "@lore/ai";
+import { type CommandIntent, type CompactEntity, commandIntentSchema } from "@lore/validators";
 
+// Optional fields are typed `| undefined` (not just `?:`) so a zod-parsed
+// request body can be spread straight into this shape under
+// `exactOptionalPropertyTypes`.
 export interface CommandRouterPayload {
-  orgId?: string | null;
-  projectId?: string | null;
-  instruction?: string;
-  entities?: CompactEntity[];
-  locale?: string;
-  model?: string;
+  orgId?: string | null | undefined;
+  projectId?: string | null | undefined;
+  instruction?: string | undefined;
+  entities?: CompactEntity[] | undefined;
+  locale?: string | undefined;
+  model?: string | undefined;
 }
 
 export function buildCommandRouterPrompt(payload: CommandRouterPayload): {
@@ -63,8 +58,7 @@ export async function runCommandRouter(
   payload: CommandRouterPayload,
 ): Promise<CommandRouterResult> {
   const { system, prompt } = buildCommandRouterPrompt(payload);
-  const model =
-    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   return await generateModelObject<CommandIntent>({
     model,
     schema: commandIntentSchema,

@@ -1,21 +1,19 @@
-import {
-  streamModelTextSSE,
-  MODELS,
-  type StreamModelTextSSEResult,
-} from "@lore/ai";
+import { MODELS, type StreamModelTextSSEResult, streamModelTextSSE } from "@lore/ai";
 import type { CompactEntity } from "@lore/validators";
 
-// Payload the web route forwards (via the gateway) when the command router
-// classifies an instruction as `query`. The answer streams back as SSE so the
-// command bar can render it token-by-token. orgId is injected server-side from
-// the session — never trusted from the browser.
+// Payload the web route forwards when the command router classifies an
+// instruction as `query`. The answer streams back as SSE so the command bar
+// can render it token-by-token. orgId is injected server-side from the
+// session — never trusted from the browser. Optional fields are typed
+// `| undefined` (not just `?:`) so a zod-parsed request body can be spread
+// straight into this shape under `exactOptionalPropertyTypes`.
 export interface QueryPayload {
-  orgId?: string | null;
-  projectId?: string | null;
-  question?: string;
-  entities?: CompactEntity[];
-  locale?: string;
-  model?: string;
+  orgId?: string | null | undefined;
+  projectId?: string | null | undefined;
+  question?: string | undefined;
+  entities?: CompactEntity[] | undefined;
+  locale?: string | undefined;
+  model?: string | undefined;
 }
 
 export function buildQueryPrompt(payload: QueryPayload): {
@@ -53,8 +51,7 @@ export interface QueryStreamResult extends StreamModelTextSSEResult {
 // without re-deriving it.
 export function runQueryStream(payload: QueryPayload): QueryStreamResult {
   const { system, prompt } = buildQueryPrompt(payload);
-  const model =
-    typeof payload.model === "string" ? payload.model : MODELS.sonnet;
+  const model = typeof payload.model === "string" ? payload.model : MODELS.sonnet;
   const { stream, done } = streamModelTextSSE({
     model,
     system,

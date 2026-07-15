@@ -1,24 +1,25 @@
-import { headers } from "next/headers";
-import { z } from "zod";
-import { signGatewayToken } from "@lore/utils";
+import { runQueryStream } from "@lore/agents";
 import { auth } from "@lore/auth";
-import type { CompactEntity } from "@lore/validators";
 import {
-  db,
+  and,
   characters,
-  locations,
+  db,
+  eq,
   factions,
+  isNull,
+  locations,
+  members,
+  projects,
   scenes,
   timelineEvents,
-  projects,
-  members,
-  and,
-  eq,
-  isNull,
 } from "@lore/db";
-import { env } from "@/env";
+import type { CompactEntity } from "@lore/validators";
+import { headers } from "next/headers";
+import { z } from "zod";
+import { createDeltaSseResponse, sseErrorResponse } from "@/lib/agent-sse";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const bodySchema = z.object({
   projectId: z.string().min(1),
@@ -31,12 +32,12 @@ export async function POST(req: Request): Promise<Response> {
   const h = await headers();
   const session = await auth.api.getSession({ headers: h });
   if (!session) {
-    return sseErrorFrame("unauthenticated");
+    return sseErrorResponse("unauthenticated");
   }
   const userId = session.user.id;
   const orgId = session.session.activeOrganizationId ?? "";
   if (!orgId) {
-    return sseErrorFrame("no_active_org");
+    return sseErrorResponse("no_active_org");
   }
 
   const json = await req.json().catch(() => null);
@@ -51,18 +52,17 @@ export async function POST(req: Request): Promise<Response> {
     .from(projects)
     .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)));
   if (!project || project.orgId !== orgId) {
-    return sseErrorFrame("project_not_accessible");
+    return sseErrorResponse("project_not_accessible");
   }
   const [membership] = await db
     .select({ id: members.id })
     .from(members)
     .where(and(eq(members.organizationId, orgId), eq(members.userId, userId)));
   if (!membership) {
-    return sseErrorFrame("project_not_accessible");
+    return sseErrorResponse("project_not_accessible");
   }
 
   const entities = await loadCompactEntities(orgId, branchId);
-  const token = await signGatewayToken(env.API_GATEWAY_SECRET, 60);
   const payload = {
     question,
     entities,
@@ -71,50 +71,23 @@ export async function POST(req: Request): Promise<Response> {
     projectId,
   };
 
-  let upstream: Response;
+  let result: ReturnType<typeof runQueryStream>;
   try {
-    upstream = await fetch(`${env.API_GATEWAY_URL}/agent/query`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    result = runQueryStream(payload);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return sseErrorFrame(`gateway unreachable: ${message}`);
+    return sseErrorResponse(message);
   }
 
-  if (!upstream.ok || !upstream.body) {
-    const text = await upstream.text().catch(() => "");
-    return sseErrorFrame(text || `upstream ${upstream.status}`);
-  }
-
-  return new Response(upstream.body, {
-    status: 200,
-    headers: {
-      "content-type": "text/event-stream",
-      "cache-control": "no-cache, no-transform",
-    },
+  return createDeltaSseResponse(result, {
+    orgId,
+    projectId,
+    runType: "query",
+    includeAiRunId: false,
   });
 }
 
-function sseErrorFrame(message: string): Response {
-  const frame = `event: error\ndata: ${JSON.stringify({ message })}\n\n`;
-  return new Response(frame, {
-    status: 200,
-    headers: {
-      "content-type": "text/event-stream",
-      "cache-control": "no-cache, no-transform",
-    },
-  });
-}
-
-async function loadCompactEntities(
-  orgId: string,
-  branchId: string,
-): Promise<CompactEntity[]> {
+async function loadCompactEntities(orgId: string, branchId: string): Promise<CompactEntity[]> {
   const [chars, locs, facs, scns, tls] = await Promise.all([
     db
       .select({ id: characters.id, name: characters.name, bio: characters.bio })
@@ -148,22 +121,12 @@ async function loadCompactEntities(
       })
       .from(factions)
       .where(
-        and(
-          eq(factions.orgId, orgId),
-          eq(factions.branchId, branchId),
-          isNull(factions.deletedAt),
-        ),
+        and(eq(factions.orgId, orgId), eq(factions.branchId, branchId), isNull(factions.deletedAt)),
       ),
     db
       .select({ id: scenes.id, title: scenes.title, summary: scenes.summary })
       .from(scenes)
-      .where(
-        and(
-          eq(scenes.orgId, orgId),
-          eq(scenes.branchId, branchId),
-          isNull(scenes.deletedAt),
-        ),
-      ),
+      .where(and(eq(scenes.orgId, orgId), eq(scenes.branchId, branchId), isNull(scenes.deletedAt))),
     db
       .select({
         id: timelineEvents.id,
