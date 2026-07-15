@@ -4,7 +4,27 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NODE_ENV",
+        "SKIP_ENV_VALIDATION",
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "RESEND_API_KEY",
+        "LIVEBLOCKS_SECRET_KEY",
+        "API_GATEWAY_URL",
+        "API_GATEWAY_SECRET",
+        "MOYASAR_WEBHOOK_SECRET",
+        "NEXT_PUBLIC_APP_URL",
+        "INNGEST_EVENT_KEY",
+        "INNGEST_SIGNING_KEY",
+        "INTERNAL_AGENT_TOKEN",
+        "AGENTS_SERVER_URL",
+        "OLLAMA_API_KEY",
+        "OLLAMA_BASE_URL",
+        "OLLAMA_MODEL"
+      ]
     },
     "dev": {
       "cache": false,
