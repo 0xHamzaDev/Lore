@@ -1,24 +1,24 @@
 "use client";
-import { useMemo } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { useRouter, Link } from "@/i18n/navigation";
-import { signIn } from "@/lib/auth-client";
-import { toast } from "sonner";
 import {
   Button,
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
   Input,
 } from "@lore/ui";
 import { ROUTES } from "@lore/utils";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Link } from "@/i18n/navigation";
+import { signIn } from "@/lib/auth-client";
 
 type FormValues = {
   email: string;
@@ -28,7 +28,6 @@ type FormValues = {
 export function SignInForm() {
   const t = useTranslations("Auth");
   const tv = useTranslations("Validation");
-  const router = useRouter();
   const invitation = useSearchParams().get("invitation");
   const schema = useMemo(
     () =>
@@ -54,17 +53,15 @@ export function SignInForm() {
       return;
     }
 
-    router.push(
-      invitation ? ROUTES.acceptInvitation(invitation) : ROUTES.dashboard,
-    );
+    // Hard navigation (not router.push): a soft client navigation races the
+    // freshly-set session cookie and lands back on /sign-in even though auth
+    // succeeded. A full document request guarantees the cookie is sent.
+    window.location.assign(invitation ? ROUTES.acceptInvitation(invitation) : ROUTES.dashboard);
   }
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <FormField
           control={form.control}
           name="email"
@@ -109,11 +106,7 @@ export function SignInForm() {
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          className="mt-2 w-full"
-          disabled={form.formState.isSubmitting}
-        >
+        <Button type="submit" className="mt-2 w-full" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? t("signingIn") : t("signIn")}
         </Button>
       </form>
